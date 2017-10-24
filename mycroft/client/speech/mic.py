@@ -163,8 +163,8 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
         # The maximum audio in seconds to keep for transcribing a phrase
         # The wake word must fit in this time
         num_phonemes = wake_word_recognizer.num_phonemes
-        len_phoneme = listener_config.get('phoneme_duration', 120) / 1000.0
-        self.TEST_WW_SEC = int(num_phonemes * len_phoneme)
+        len_phoneme = listener_config.get('phoneme_duration', 0.2)
+        self.TEST_WW_SEC = num_phonemes * len_phoneme
         self.SAVED_WW_SEC = (10 if self.upload_config['enable']
                              else self.TEST_WW_SEC)
 
@@ -283,7 +283,7 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
 
     @staticmethod
     def sec_to_bytes(sec, source):
-        return sec * source.SAMPLE_RATE * source.SAMPLE_WIDTH
+        return int(sec * source.SAMPLE_RATE * source.SAMPLE_WIDTH)
 
     def _skip_wake_word(self):
         # Check if told programatically to skip the wake word, like
@@ -361,6 +361,8 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
 
         # Max bytes for byte_data before audio is removed from the front
         max_size = self.sec_to_bytes(self.SAVED_WW_SEC, source)
+        LOG.debug('TEST WW SEC:' + str(self.TEST_WW_SEC))
+        LOG.debug('OTHER:' + str(source.SAMPLE_RATE * source.SAMPLE_WIDTH))
         test_size = self.sec_to_bytes(self.TEST_WW_SEC, source)
 
         said_wake_word = False
@@ -419,6 +421,7 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
                 byte_data = byte_data[len(chunk):] + chunk
 
             buffers_since_check += 1.0
+            self.wake_word_recognizer.update(chunk)
             if buffers_since_check > buffers_per_check:
                 buffers_since_check -= buffers_per_check
                 chopped = byte_data[-test_size:] \

@@ -19,7 +19,11 @@ import os
 from os.path import dirname, exists, join, abspath
 
 from mycroft.configuration import Configuration
+from subprocess import Popen, PIPE
+from threading import Thread
+
 from mycroft.util.log import LOG
+import numpy as np
 
 
 RECOGNIZER_DIR = join(abspath(dirname(__file__)), "recognizer")
@@ -97,6 +101,46 @@ class PocketsphinxHotWord(HotWordEngine):
         return hyp and self.key_phrase in hyp.hypstr.lower()
 
 
+class PreciseHotword(HotWordEngine):
+    def __init__(self, key_phrase="hey mycroft", config=None, lang="en-us"):
+        super(PreciseHotword, self).__init__(key_phrase, config, lang)
+
+        folder = join(RECOGNIZER_DIR, 'model', self.lang)
+        exe_name = join(folder, 'precise_stream')
+        model_name = join(folder, 'keyword.pb')
+        self.chunk_size = 1024
+        self.proc = Popen([exe_name, model_name, str(self.chunk_size)], stdin=PIPE, stdout=PIPE)
+        self.has_found = False
+        self.cooldown = 20
+        t = Thread(target=self.check_stdout)
+        t.daemon = True
+        t.start()
+
+    def check_stdout(self):
+        while True:
+            line = self.proc.stdout.readline()
+            LOG.debug('Precise feedback: ' + str(round(float(line))))
+            if self.cooldown > 0:
+                self.cooldown -= 1
+                self.has_found = False
+                LOG.debug('COOLDOWN')
+                continue
+            if float(line) > 0.5:
+                self.has_found = True
+            else:
+                self.has_found = False
+
+    def update(self, chunk):
+        self.proc.stdin.write(chunk)
+        self.proc.stdin.flush()
+
+    def found_wake_word(self, raw_data):
+        if self.has_found and self.cooldown == 0:
+            self.cooldown = 20
+            return True
+        return False
+
+
 class SnowboyHotWord(HotWordEngine):
     def __init__(self, key_phrase="hey mycroft", config=None, lang="en-us"):
         super(SnowboyHotWord, self).__init__(key_phrase, config, lang)
@@ -126,6 +170,7 @@ class SnowboyHotWord(HotWordEngine):
 class HotWordFactory(object):
     CLASSES = {
         "pocketsphinx": PocketsphinxHotWord,
+        "precise": PreciseHotword,
         "snowboy": SnowboyHotWord
     }
 
