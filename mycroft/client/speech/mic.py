@@ -138,7 +138,7 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
 
     # The minimum seconds of noise before a
     # phrase can be considered complete
-    MIN_LOUD_SEC_PER_PHRASE = 0.5
+    MIN_LOUD_SEC_PER_PHRASE = 0.25
 
     # The minimum seconds of silence required at the end
     # before a phrase will be considered complete
@@ -153,7 +153,7 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
     RECORDING_TIMEOUT_WITH_SILENCE = 2.0
 
     # Time between pocketsphinx checks for the wake word
-    SEC_BETWEEN_WW_CHECKS = 0.2
+    SEC_BETWEEN_WW_CHECKS = 0.1
 
     def __init__(self, wake_word_recognizer):
 
@@ -193,6 +193,9 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
         self.filenames_to_upload = []
         self.mic_level_file = os.path.join(get_ipc_directory(), "mic_level")
         self._stop_signaled = False
+        self.sound_start_recording_file = resolve_resource_file(
+            self.config.get('sounds').get('start_listening'))
+        self.confirm_listening = self.config.get('confirm_listening')
 
     @staticmethod
     def record_sound_chunk(source):
@@ -510,13 +513,13 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
 
         # If enabled, play a wave file with a short sound to audibly
         # indicate recording has begun.
-        if (self.config.get('confirm_listening') and
+        if (self.confirm_listening and
                 (not self.skip_wake_word or
                  check_for_signal('WaitingToConfirm', 10))):
-            file = resolve_resource_file(
-                self.config.get('sounds').get('start_listening'))
-            if file:
-                play_wav(file)
+            # file = resolve_resource_file(
+            #     self.config.get('sounds').get('start_listening'))
+            if self.sound_start_recording_file:
+                play_wav(self.sound_start_recording_file)
 
         frame_data = self._record_phrase(source, sec_per_buffer)
         audio_data = self._create_audio_data(frame_data, source)

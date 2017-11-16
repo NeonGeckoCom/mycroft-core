@@ -35,6 +35,7 @@ from mycroft.util.log import LOG
 from mycroft.client.speech.pocketsphinx_audio_consumer \
     import PocketsphinxAudioConsumer
 from mycroft.util import (check_for_signal)
+from pydub import AudioSegment,silence
 
 
 class AudioProducer(Thread):
@@ -59,7 +60,23 @@ class AudioProducer(Thread):
             while self.state.running:
                 try:
                     audio = self.recognizer.listen(source, self.emitter)
-                    if len(audio.frame_data) != 65538:  # 2 seconds (silence)
+
+                    filename = "/tmp/mycroft_utterance.wav"
+                    with open(filename, 'wb') as filea:
+                        filea.write(audio.get_wav_data())
+
+                    check_audio = AudioSegment.from_raw(filename, sample_width = 2, frame_rate = 16000, channels = 1)
+                    # silence1 = silence.detect_nonsilent(check_audio, min_silence_len=2000, silence_thresh=-24)
+                    silence1 = silence.detect_silence(check_audio, min_silence_len=1000, silence_thresh=-0)
+
+                    silence1 = [((start), (stop)) for start, stop in silence1]  # convert to sec
+                    # silence1 = [((start / 1000), (stop / 1000)) for start, stop in silence1]  # convert to sec
+                    LOG.debug("silence1 = " + str(silence1))
+                    LOG.debug("len(audio.frame_data) = " + str(len(audio.frame_data)))
+
+                    # if silence1 != [(0,2)]:  # 2 seconds (silence)
+                    if not(silence1 == [(0,2048)] and\
+                                    len(audio.frame_data) == 65538):  # 2 seconds (silence)
                         self.queue.put(audio)
                 except IOError, ex:
                     # NOTE: Audio stack on raspi is slightly different, throws
@@ -177,7 +194,7 @@ class AudioConsumer(Thread):
         if self._audio_length(audio) < self.MIN_AUDIO_SIZE:
             LOG.warning("Audio too short to be processed")
         else:
-            if len(audio.frame_data) != 65538:  # 2 seconds (silence)
+            # if len(audio.frame_data) != 65538:  # 2 seconds (silence)
                 # if len(audio.frame_data) != 96258:  # 3 seconds silence
                 if isinstance(self.stt, PocketsphinxAudioConsumer):
                     # LOG.debug("test phrase decode/transcribe")
