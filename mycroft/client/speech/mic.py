@@ -150,7 +150,7 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
 
     # The maximum time it will continue to record silence
     # when not enough noise has been detected
-    RECORDING_TIMEOUT_WITH_SILENCE = 2.0
+    RECORDING_TIMEOUT_WITH_SILENCE = 3.0
 
     # Time between pocketsphinx checks for the wake word
     SEC_BETWEEN_WW_CHECKS = 0.1

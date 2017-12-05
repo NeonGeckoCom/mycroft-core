@@ -37,6 +37,9 @@ from mycroft.client.speech.pocketsphinx_audio_consumer \
 from mycroft.util import (check_for_signal)
 from pydub import AudioSegment,silence
 
+os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
+import sox
+
 
 class AudioProducer(Thread):
     """
@@ -61,23 +64,10 @@ class AudioProducer(Thread):
                 try:
                     audio = self.recognizer.listen(source, self.emitter)
 
-                    filename = "/tmp/mycroft_utterance.wav"
-                    with open(filename, 'wb') as filea:
-                        filea.write(audio.get_wav_data())
-
-                    check_audio = AudioSegment.from_raw(filename, sample_width = 2, frame_rate = 16000, channels = 1)
-                    # silence1 = silence.detect_nonsilent(check_audio, min_silence_len=2000, silence_thresh=-24)
-                    silence1 = silence.detect_silence(check_audio, min_silence_len=1000, silence_thresh=-0)
-
-                    silence1 = [((start), (stop)) for start, stop in silence1]  # convert to sec
-                    # silence1 = [((start / 1000), (stop / 1000)) for start, stop in silence1]  # convert to sec
-                    LOG.debug("silence1 = " + str(silence1))
-                    LOG.debug("len(audio.frame_data) = " + str(len(audio.frame_data)))
-
-                    # if silence1 != [(0,2)]:  # 2 seconds (silence)
-                    if not(silence1 == [(0,2048)] and\
-                                    len(audio.frame_data) == 65538):  # 2 seconds (silence)
+                    if not(self.utterance_is_min_len_silence(audio, source)):
                         self.queue.put(audio)
+                    else:
+                        LOG.debug('STT bypassed... SILENCE...')
                 except IOError, ex:
                     # NOTE: Audio stack on raspi is slightly different, throws
                     # IOError every other listen, almost like it can't handle
@@ -85,6 +75,55 @@ class AudioProducer(Thread):
                     # The internet was not helpful.
                     # http://stackoverflow.com/questions/10733903/pyaudio-input-overflowed
                     self.emitter.emit("recognizer_loop:ioerror", ex)
+
+
+    def utterance_is_min_len_silence(self, audio, source):
+        filename = "/tmp/mycroft_utterance.wav"
+        with open(filename, 'wb') as filea:
+            filea.write(audio.get_wav_data())
+
+        LOG.debug("sox.file_info.duration = " + str(sox.file_info.duration(filename)))
+        # LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, source.energy_threshold)))
+        LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, 0.01)))
+
+        return bool(sox.file_info.silent(filename, 0.01))
+
+        # check_audio = AudioSegment.from_raw(filename, sample_width=2, frame_rate=16000, channels=1)
+        # # silence1 = silence.detect_nonsilent(check_audio, min_silence_len=2000, silence_thresh=-24)
+        # silence1 = silence.detect_silence(check_audio, min_silence_len=1000, silence_thresh=-0)
+        #
+        # silence1 = [((start), (stop)) for start, stop in silence1]  # convert to sec
+        # # silence1 = [((start / 1000), (stop / 1000)) for start, stop in silence1]  # convert to sec
+        # LOG.debug("silence1 = " + str(silence1))
+        # LOG.debug("len(audio.frame_data) = " + str(len(audio.frame_data)))
+        # silence_boundary = self.truncate((float(len(audio.frame_data)) / (
+        #     audio.sample_rate * audio.sample_width)) * 1000, 0)
+        #
+        # LOG.debug("silence_boundary[0:4] = " + str(silence_boundary[0:4]))
+        #
+        # if self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE == 1.0:
+        #     length = 32770
+        #     # silence_boundary = 1024
+        # elif self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE == 2.0:
+        #     length = 65538
+        # elif self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE == 3.0:
+        #     length = 96258
+        #
+        # LOG.debug("test = " + str(bool(silence1 == [(0, int(silence_boundary[0:4]))] and\
+        #                             len(audio.frame_data) == length)))
+        #
+        # return bool(silence1 == [(0, int(silence_boundary[0:4]))] and\
+        #                             len(audio.frame_data) == length)
+
+
+    def truncate(self, f, n):
+        '''Truncates/pads a float f to n decimal places without rounding'''
+        s = '{}'.format(f)
+        if 'e' in s or 'E' in s:
+            return '{0:.{1}f}'.format(f, n)
+        i, p, d = s.partition('.')
+        return '.'.join([i, (d + '0' * n)[:n]])
+
 
     def stop(self):
         """
