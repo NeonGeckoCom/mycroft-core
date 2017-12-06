@@ -15,6 +15,14 @@ audio_permission = check_for_signal('keep_audio_permission', 0)
 # text_permission = create_signal('transcribe_text_permission')
 # audio_permission = create_signal('keep_audio_permission')
 
+try:
+    os.makedirs("/var/log/mycroft/"
+                "ts_transcript_audio_segments/")
+except OSError:
+    if not os.path.isdir("/var/log/mycroft/"
+                         "ts_transcript_audio_segments/"):
+        raise
+
 
 class Transcribe:
     """
