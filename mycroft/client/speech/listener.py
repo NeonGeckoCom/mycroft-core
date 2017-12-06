@@ -84,11 +84,19 @@ class AudioProducer(Thread):
         with open(filename, 'wb') as filea:
             filea.write(audio.get_wav_data())
 
-        LOG.debug("sox.file_info.duration = " + str(sox.file_info.duration(filename)))
+        LOG.debug("self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE = " + str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE))
+        LOG.debug("sox.file_info.duration = " + str(self.truncate(sox.file_info.duration(filename),1)))
         # LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, source.energy_threshold)))
-        LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, 0.01)))
+        LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, 0.025)))
 
-        return bool(sox.file_info.silent(filename, 0.01))
+        LOG.debug('bool = '+ str(bool(sox.file_info.silent(filename, 0.025) and
+                    (str(self.truncate(sox.file_info.duration(filename),1)) ==
+                     str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE)))))
+
+        return bool(sox.file_info.silent(filename, 0.025) )
+                    # and
+                    # (str(self.truncate(sox.file_info.duration(filename),1)) ==
+                    #  str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE)))
 
         # check_audio = AudioSegment.from_raw(filename, sample_width=2, frame_rate=16000, channels=1)
         # # silence1 = silence.detect_nonsilent(check_audio, min_silence_len=2000, silence_thresh=-24)
@@ -447,12 +455,14 @@ class RecognizerLoop(EventEmitter):
                 self.stop()
                 raise  # Re-raise KeyboardInterrupt
 
+
     def reload(self):
         self.stop()
         # load config
         self._load_config()
         # restart
         self.start_async()
+
 
     def restart(self):
         """
