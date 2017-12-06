@@ -129,10 +129,6 @@ def handle_stop(event):
     loop.force_unmute()
 
 
-def handle_restart(event):
-    loop.restart()
-
-
 def handle_open():
     # TODO: Move this into the Enclosure (not speech client)
     # Reset the UI to indicate ready for speech processing
@@ -172,7 +168,6 @@ def main():
     ws.on('recognizer_loop:audio_output_start', handle_audio_start)
     ws.on('recognizer_loop:audio_output_end', handle_audio_end)
     ws.on('mycroft.stop', handle_stop)
-    ws.on('recognizer_loop:restart', handle_restart)
     event_thread = Thread(target=connect)
     event_thread.setDaemon(True)
     event_thread.start()
