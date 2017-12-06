@@ -24,6 +24,8 @@ from pyee import EventEmitter
 from requests import HTTPError
 from requests.exceptions import ConnectionError
 
+import pwd
+import os
 import mycroft.dialog
 from mycroft.client.speech.hotword_factory import HotWordFactory
 from mycroft.client.speech.mic import MutableMicrophone, ResponsiveRecognizer
@@ -391,9 +393,6 @@ class RecognizerLoop(EventEmitter):
                 raise  # Re-raise KeyboardInterrupt
 
     def reload(self):
-        """
-            Reload configuration and restart consumer and producer
-        """
         self.stop()
         # load config
         self._load_config()
@@ -402,7 +401,7 @@ class RecognizerLoop(EventEmitter):
 
     def restart(self):
         """
-            ReStart the speech/voice client
+            Restart the speech/voice client
         """
         platform = str(self.enclosure_config.get(
             'platform', 'laptop/desktop platform'))

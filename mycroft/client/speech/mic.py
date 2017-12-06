@@ -37,6 +37,7 @@ from mycroft.api import DeviceApi
 from mycroft.configuration import Configuration
 from mycroft.session import SessionManager
 from mycroft.util import (
+    create_signal,
     check_for_signal,
     create_signal,
     get_ipc_directory,
