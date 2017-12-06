@@ -35,6 +35,7 @@ from mycroft.util.log import LOG
 from mycroft.client.speech.pocketsphinx_audio_consumer \
     import PocketsphinxAudioConsumer
 from mycroft.util import (check_for_signal)
+from mycroft.client.speech.transcribe import Transcribe
 
 
 class AudioProducer(Thread):
@@ -226,6 +227,7 @@ class AudioConsumer(Thread):
             }
             self.emitter.emit("recognizer_loop:utterance", payload)
             self.metrics.attr('utterances', [text])
+            Transcribe.write_transcribed_files(audio.frame_data, text)
 
     def __speak(self, utterance):
         payload = {
