@@ -87,17 +87,18 @@ class AudioProducer(Thread):
         LOG.debug("self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE = " + str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE))
         LOG.debug("sox.file_info.duration = " + str(self.truncate(sox.file_info.duration(filename),1)))
         # LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, source.energy_threshold)))
-        LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, 0.025)))
+        LOG.debug("sox.file_info.silent = " + str(sox.file_info.silent(filename, 0.015)))
 
-        LOG.debug('bool = '+ str(bool(sox.file_info.silent(filename, 0.025) and
+        LOG.debug('bool = '+ str(bool(sox.file_info.silent(filename, 0.015) and
                     (str(self.truncate(sox.file_info.duration(filename),1)) ==
                      str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE)))))
 
-        # return bool(sox.file_info.silent(filename, 0.025) )
-        return bool(sox.file_info.silent(filename, 0.025)
-                    and
-                    (str(self.truncate(sox.file_info.duration(filename),1)) ==
-                     str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE)))
+        return bool(sox.file_info.silent(filename, 0.015) )
+
+        # return bool(sox.file_info.silent(filename, 0.015)
+        #             and
+        #             (str(self.truncate(sox.file_info.duration(filename),1)) ==
+        #              str(self.recognizer.RECORDING_TIMEOUT_WITH_SILENCE)))
 
         # check_audio = AudioSegment.from_raw(filename, sample_width=2, frame_rate=16000, channels=1)
         # # silence1 = silence.detect_nonsilent(check_audio, min_silence_len=2000, silence_thresh=-24)
