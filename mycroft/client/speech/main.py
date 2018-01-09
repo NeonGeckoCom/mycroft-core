@@ -60,6 +60,16 @@ def handle_utterance(event):
     LOG.info("Utterance: " + str(event['utterances']))
     ws.emit(Message('recognizer_loop:utterance', event))
 
+    # from websocket import create_connection
+    # chat_ws = create_connection("ws://64.34.187.223:8888")
+    # print "Sending 'user message to chat'..."
+    # chat_ws.send("user message", str(event['utterances']))
+    # print "Sent"
+    # print "Reeiving..."
+    # result = chat_ws.recv()
+    # print "Received '%s'" % result
+    # chat_ws.close()
+
 
 def handle_speak(event):
     """

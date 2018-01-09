@@ -543,9 +543,10 @@ class ResponsiveRecognizer(speech_recognition.Recognizer):
         if self.save_utterances:
             LOG.info("Recording utterance")
             stamp = str(datetime.datetime.now())
-            filename = "/tmp/mycroft_utterance%s.wav" % stamp
+            filename = "/tmp/mycroft_utterance%s.flac" % stamp
             with open(filename, 'wb') as filea:
-                filea.write(audio_data.get_wav_data())
+                filea.write(audio_data.get_flac_data())
+                # filea.write(audio_data.get_wav_data())
             LOG.debug("Thinking...")
 
         return audio_data

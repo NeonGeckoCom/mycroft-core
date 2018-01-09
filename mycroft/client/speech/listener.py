@@ -15,8 +15,6 @@
 import time
 from Queue import Queue, Empty
 from threading import Thread
-import pwd
-import os
 import multiprocessing
 
 import speech_recognition as sr
@@ -38,8 +36,12 @@ from mycroft.client.speech.pocketsphinx_audio_consumer \
     import PocketsphinxAudioConsumer
 from mycroft.util import (check_for_signal)
 from mycroft.client.speech.transcribe import Transcribe
+from speech_recognition import (
+    AudioData
+)
 
-os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
+
+# os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
 import sox
 
 
@@ -196,7 +198,11 @@ class AudioConsumer(Thread):
 
     def read(self):
         try:
-            audio = self.queue.get(timeout=0.5)
+            if check_for_signal('FileInputToSTT', 3):
+                # raw_data = open("/var/log/STTInput.ogg", "rb").read()
+                audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
+            else:
+                audio = self.queue.get(timeout=0.5)
         except Empty:
             return
 
@@ -386,11 +392,13 @@ class RecognizerLoop(EventEmitter):
                                       self.responsive_recognizer, self)
         self.producer.start()
         if check_for_signal('UseLocalSTT', -1):
+            LOG.info("creating Local SST engine")
             self.consumer = AudioConsumer(self.state, queue, self,
                                           self.wakeword_recognizer,
                                           self.wakeup_recognizer,
                                           self.wakeword_recognizer)
         else:
+            LOG.info("creating Remote SST engine")
             self.consumer = AudioConsumer(self.state, queue, self,
                                           STTFactory.create(),
                                           self.wakeup_recognizer,
