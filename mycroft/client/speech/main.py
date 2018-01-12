@@ -27,7 +27,8 @@ from mycroft.util import (
     check_for_signal)
 from websocket import create_connection
 import websocket
-from mycroft.client.speech.chatsocket import ChatSocket
+# from mycroft.client.speech.chatsocket import ChatSocket
+from socketIO_client import SocketIO
 
 
 ws = None
@@ -63,7 +64,7 @@ def handle_wakeword(event):
 def handle_utterance(event):
     LOG.info("Utterance: " + str(event['utterances']))
     ws.emit(Message('recognizer_loop:utterance', event))
-    css.emit('from mycroft', str(event['utterances']))
+    css.emit('from mycroft', str(event['utterances'][0]))
 
 # 1st try websocket to chat_server.js
     # chat_ws = create_connection("ws://localhost:8888")
@@ -188,7 +189,10 @@ def main():
     event_thread.setDaemon(True)
     event_thread.start()
 
-    css = ChatSocket()
+    css = SocketIO('https://3333.us', 8888,
+                            # verify='server.crt',
+                            # cert=('client.crt', 'client.key'),
+                            proxies={'http': 'https://3333.us:8888'})
 
     try:
         loop.run()

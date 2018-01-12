@@ -17,7 +17,6 @@ from mycroft.util.log import LOG
 import websocket
 # from socketio import SocketIO
 from socketIO_client import SocketIO
-import urllib3
 
 class ChatSocket(SocketIO):
     def __init__(self):
