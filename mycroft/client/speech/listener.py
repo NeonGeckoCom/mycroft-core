@@ -41,7 +41,8 @@ from speech_recognition import (
 )
 
 
-# os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
+os.sys.path.append('/usr/lib/python2.7/dist-packages')
+os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
 import sox
 
 
@@ -66,7 +67,7 @@ class AudioProducer(Thread):
             self.recognizer.adjust_for_ambient_noise(source)
             while self.state.running:
                 try:
-                    audio = self.recognizer.listen(source, self.emitter)
+                    # audio = self.recognizer.listen(source, self.emitter)
 
                     if not(self.utterance_is_min_len_silence(audio, source)):
                         self.queue.put(audio)
@@ -198,9 +199,13 @@ class AudioConsumer(Thread):
 
     def read(self):
         try:
-            if check_for_signal('FileInputToSTT', 3):
+            if check_for_signal('FileInputToSTT', -1):
                 # raw_data = open("/var/log/STTInput.ogg", "rb").read()
-                audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
+                try:
+                    audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
+                    # LOG.debug(''' audio.frame_data ''' + str(audio.frame_data))
+                except Exception as e:
+                    LOG.debug('''audio file open error == ''' + str(e))
             else:
                 audio = self.queue.get(timeout=0.5)
         except Empty:
@@ -388,9 +393,9 @@ class RecognizerLoop(EventEmitter):
         """
         self.state.running = True
         queue = Queue()
-        self.producer = AudioProducer(self.state, queue, self.microphone,
-                                      self.responsive_recognizer, self)
-        self.producer.start()
+        # self.producer = AudioProducer(self.state, queue, self.microphone,
+        #                               self.responsive_recognizer, self)
+        # self.producer.start()
         if check_for_signal('UseLocalSTT', -1):
             LOG.info("creating Local SST engine")
             self.consumer = AudioConsumer(self.state, queue, self,
@@ -407,9 +412,9 @@ class RecognizerLoop(EventEmitter):
 
     def stop(self):
         self.state.running = False
-        self.producer.stop()
+        # self.producer.stop()
         # wait for threads to shutdown
-        self.producer.join()
+        # self.producer.join()
         self.consumer.join()
 
     def mute(self):

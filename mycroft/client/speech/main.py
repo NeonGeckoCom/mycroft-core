@@ -25,6 +25,10 @@ from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 from mycroft.util import (
     check_for_signal)
+from websocket import create_connection
+import websocket
+from mycroft.client.speech.chatsocket import ChatSocket
+
 
 ws = None
 lock = Lock()
@@ -59,16 +63,18 @@ def handle_wakeword(event):
 def handle_utterance(event):
     LOG.info("Utterance: " + str(event['utterances']))
     ws.emit(Message('recognizer_loop:utterance', event))
+    css.emit('from mycroft', str(event['utterances']))
 
-    # from websocket import create_connection
-    # chat_ws = create_connection("ws://64.34.187.223:8888")
-    # print "Sending 'user message to chat'..."
+# 1st try websocket to chat_server.js
+    # chat_ws = create_connection("ws://localhost:8888")
+    # LOG.info("Sending 'user message to chat'...")
     # chat_ws.send("user message", str(event['utterances']))
-    # print "Sent"
-    # print "Reeiving..."
+    # LOG.info("Sent")
+    # LOG.info("Receiving...")
     # result = chat_ws.recv()
-    # print "Received '%s'" % result
+    # LOG.info("Received '%s'" % result)
     # chat_ws.close()
+
 
 
 def handle_speak(event):
@@ -148,11 +154,11 @@ def handle_open():
 def connect():
     ws.run_forever()
 
-
 def main():
     global ws
     global loop
     global config
+    global css     # chat server socket connection
     lock = PIDLock("voice")
     ws = WebsocketClient()
     config = Configuration.get()
@@ -182,12 +188,13 @@ def main():
     event_thread.setDaemon(True)
     event_thread.start()
 
+    css = ChatSocket()
+
     try:
         loop.run()
     except KeyboardInterrupt, e:
         LOG.exception(e)
         sys.exit()
-
 
 if __name__ == "__main__":
     main()
