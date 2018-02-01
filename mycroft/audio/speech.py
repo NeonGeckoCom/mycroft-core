@@ -182,7 +182,7 @@ def init(websocket):
     ws.on('mycroft.audio.speech.stop', handle_stop)
     ws.on('speak', handle_speak)
     ws.on('mycroft.mic.listen', _start_listener)
-    ws.on('chatUserToAudio', _handle_chatUser_utterance)
+    # ws.on('chatUserToAudio', _handle_chatUser_utterance)
     # ws.on('recognizer_loop:chatUser_utterance', _handle_chatUser_utterance)
     ws.on('recognizer_loop:chatUser_response', _handle_chatUser_response)
     ws.on('mycroft.skill.chat_user_update', _handle_chat_user_update)
@@ -209,34 +209,34 @@ def _handle_chat_user_update(message):
     chatUser[1]['intent_type'] = message.data.intent_type
 
 
-def _handle_chatUser_utterance(message):
-# def _handle_chatUser_utterance(text, flac_filename, sessionId):
-    filename = os.path.basename(message.data['flac_filename'])
-    parts = filename.split('-')
-    shoutId = parts[1]
-    socketId = parts[2]
-    nickname = parts[3][0:-5]
-    timestamp = str(time.time())
-    LOG.debug('audioChatUsers flac_filename = ' + message.data['flac_filename'])
-    # LOG.debug('audioChatUsers shoutId = ' + parts[1])
-    # LOG.debug('audioChatUsers socketId = ' + parts[2])
-    # LOG.debug('audioChatUsers nickname = ' + parts[3][0:-5])
-    # LOG.debug('audioChatUsers timestamp = ' + str(timestamp))
-    # LOG.debug('audioChatUsers sessionId = ' + str(sessionId))
-    chatUser = [socketId, {'shoutId': shoutId
-        , 'flac_filename': message.data['flac_filename']
-        , 'socketId': socketId
-        , 'nickname': nickname
-        , 'responseReceived': False
-        , 'utterance': message.data['text']
-        , 'timestamp': time.time()
-        , 'intent_type': ''}]
-    if socketId not in audioChatUsers:
-        audioChatUsers.append(chatUser)
-    else:
-        audioChatUsers.remove(chatUser)
-        audioChatUsers.append(chatUser)
-    LOG.debug('self.audioChatUsers = ' + str(audioChatUsers))
+# def _handle_chatUser_utterance(message):
+# # def _handle_chatUser_utterance(text, flac_filename, sessionId):
+#     filename = os.path.basename(message.data['flac_filename'])
+#     parts = filename.split('-')
+#     shoutId = parts[1]
+#     socketId = parts[2]
+#     nickname = parts[3][0:-5]
+#     timestamp = str(time.time())
+#     LOG.debug('audioChatUsers flac_filename = ' + message.data['flac_filename'])
+#     # LOG.debug('audioChatUsers shoutId = ' + parts[1])
+#     # LOG.debug('audioChatUsers socketId = ' + parts[2])
+#     # LOG.debug('audioChatUsers nickname = ' + parts[3][0:-5])
+#     # LOG.debug('audioChatUsers timestamp = ' + str(timestamp))
+#     # LOG.debug('audioChatUsers sessionId = ' + str(sessionId))
+#     chatUser = [socketId, {'shoutId': shoutId
+#         , 'flac_filename': message.data['flac_filename']
+#         , 'socketId': socketId
+#         , 'nickname': nickname
+#         , 'responseReceived': False
+#         , 'utterance': message.data['text']
+#         , 'timestamp': time.time()
+#         , 'intent_type': ''}]
+#     if socketId not in audioChatUsers:
+#         audioChatUsers.append(chatUser)
+#     else:
+#         audioChatUsers.remove(chatUser)
+#         audioChatUsers.append(chatUser)
+#     LOG.debug('self.audioChatUsers = ' + str(audioChatUsers))
 
 
 def _handle_chatUser_response(message):

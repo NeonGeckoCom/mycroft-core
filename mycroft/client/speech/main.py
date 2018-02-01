@@ -192,35 +192,35 @@ def handle_chatUser_return_stt(text, flac_filename):
     css.emit('stt from mycroft', text, flac_filename)
 
 
-def handle_chatUser_response(message):
-    # chatUser = find_chatUser_by_utterance(message.data['utterance'])
-    # chatUser = find_chatUser(3.5)
-    # chatUser = chatUsers.pop()
-    # LOG.debug('handle_chatUser_response, chatUser = ' + str(chatUser))
-
-    try:
-        # uid = pwd.getpwnam('guy')[2]
-        # LOG.debug('''laptop root uid ==''' + str(uid))
-        # os.setuid(uid)
-        # os.system('/etc/init.d/mycroft-speech-client stop;
-        #   /etc/init.d/mycroft-speech-client start')
-        # LOG.debug(''' username = ''' +
-        #           pwd.getpwuid(os.getuid()).pw_name)
-        # os.system('sudo rm ' + self.flac_filename)
-        # sudoPassword = 'neongecko22k'
-        sudoPassword = 'ne0ngeck0'
-        command = 'mv ' + message.data['wav_file'] \
-                  + ' /var/www/html/sites/default/files/chat_audio/' \
-                  + os.path.basename(message.data['wav_file'])
-        # command = 'rm ' + self.flac_filename
-        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
-    except Exception as e:
-        LOG.debug('''error == ''' + str(e))
-
-    if check_for_signal('MatchIntentandRespond', -1):
-        css.emit('mycroft response', message.data['sentence'], os.path.basename(message.data['wav_file']))
-
-    # chatUsers.remove(chatUser)
+# def handle_chatUser_response(message):
+#     # chatUser = find_chatUser_by_utterance(message.data['utterance'])
+#     # chatUser = find_chatUser(3.5)
+#     # chatUser = chatUsers.pop()
+#     # LOG.debug('handle_chatUser_response, chatUser = ' + str(chatUser))
+#
+#     try:
+#         # uid = pwd.getpwnam('guy')[2]
+#         # LOG.debug('''laptop root uid ==''' + str(uid))
+#         # os.setuid(uid)
+#         # os.system('/etc/init.d/mycroft-speech-client stop;
+#         #   /etc/init.d/mycroft-speech-client start')
+#         # LOG.debug(''' username = ''' +
+#         #           pwd.getpwuid(os.getuid()).pw_name)
+#         # os.system('sudo rm ' + self.flac_filename)
+#         # sudoPassword = 'neongecko22k'
+#         sudoPassword = 'ne0ngeck0'
+#         command = 'mv ' + message.data['wav_file'] \
+#                   + ' /var/www/html/sites/default/files/chat_audio/' \
+#                   + os.path.basename(message.data['wav_file'])
+#         # command = 'rm ' + self.flac_filename
+#         p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+#     except Exception as e:
+#         LOG.debug('''error == ''' + str(e))
+#
+#     if check_for_signal('MatchIntentandRespond', -1):
+#         css.emit('mycroft response', message.data['sentence'], os.path.basename(message.data['wav_file']))
+#
+#     # chatUsers.remove(chatUser)
 
 
 
