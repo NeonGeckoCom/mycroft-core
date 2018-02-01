@@ -85,7 +85,6 @@ class WebsocketClient(object):
                 not self.client.sock.connected):
             return
         if hasattr(message, 'serialize'):
-            LOG.debug('>>>> message = <<<<<< : ' + str(message))
             self.client.send(message.serialize())
         else:
             self.client.send(json.dumps(message.__dict__))

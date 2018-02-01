@@ -33,7 +33,7 @@ lock = Lock()
 
 _last_stop_signal = 0
 
-audioChatUsers = []
+# audioChatUsers = []
 css = SocketIO('https://3333.us', 8888,
                # verify='server.crt',
                # cert=('client.crt', 'client.key'),
@@ -71,8 +71,10 @@ def handle_speak(event):
     #     return
     #     # filename = None
 
-    if event.data.message.data['flac_filename']:
-        filename = event.data.message.data['flac_filename']
+
+    LOG.debug('>>> flac_filename in audio/speech/handle_speak = ' + event.data['flac_filename'])
+    if event.data['flac_filename']:
+        filename = event.data['flac_filename']
     else:
         return
 

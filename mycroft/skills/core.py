@@ -599,7 +599,7 @@ class MycroftSkill(object):
         self.enclosure.register(self.name)
         data = {'utterance': utterance,
                 'expect_response': expect_response,
-                'message': message}
+                'flac_filename': message.data['flac_filename']}
         self.emitter.emit(Message("speak", data))
 
     def speak_dialog(self, key, data=None, expect_response=False):
