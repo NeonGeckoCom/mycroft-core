@@ -585,7 +585,7 @@ class MycroftSkill(object):
         re.compile(regex_str)  # validate regex
         self.emitter.emit(Message('register_vocab', {'regex': regex_str}))
 
-    def speak(self, utterance, expect_response=False):
+    def speak(self, utterance, expect_response=False, message=None):
         """
             Speak a sentence.
 
@@ -598,7 +598,8 @@ class MycroftSkill(object):
         # registers the skill as being active
         self.enclosure.register(self.name)
         data = {'utterance': utterance,
-                'expect_response': expect_response}
+                'expect_response': expect_response,
+                'message': message}
         self.emitter.emit(Message("speak", data))
 
     def speak_dialog(self, key, data=None, expect_response=False):

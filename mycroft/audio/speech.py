@@ -62,15 +62,19 @@ def handle_speak(event):
 
     # LOG.debug('audio/speech.py handle_speak event.data.get("chatUserFilename") = ' + str(event.data.get('chatUserFilename')))
 
-    if len(audioChatUsers) > 0:
-        chatUser = audioChatUsers.pop()
-        # chatuser_info = json.loads(chatUser[1])
-        # filename = chatUser[1].flac_filename
-        filename = os.path.basename(chatUser[1]['flac_filename'])
+    # if len(audioChatUsers) > 0:
+    #     chatUser = audioChatUsers.pop()
+    #     # chatuser_info = json.loads(chatUser[1])
+    #     # filename = chatUser[1].flac_filename
+    #     filename = os.path.basename(chatUser[1]['flac_filename'])
+    # else:
+    #     return
+    #     # filename = None
+
+    if event.data.message.data['flac_filename']:
+        filename = event.data.message.data['flac_filename']
     else:
         return
-        # filename = None
-
 
     config = Configuration.get()
     Configuration.init(ws)
@@ -80,10 +84,10 @@ def handle_speak(event):
     # when TTS is happening.  See mycroft.util.is_speaking()
 
     # filename = os.path.basename(message.data['flac_filename'])
-    parts = filename.split('-')
-    shoutId = parts[1]
-    socketId = parts[2]
-    nickname = parts[3][0:-5]
+    # parts = filename.split('-')
+    # shoutId = parts[1]
+    # socketId = parts[2]
+    # nickname = parts[3][0:-5]
 
 
     utterance = event.data['utterance']
