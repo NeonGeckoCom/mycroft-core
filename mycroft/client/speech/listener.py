@@ -23,7 +23,7 @@ from requests import HTTPError
 from requests.exceptions import ConnectionError
 
 import pwd
-import os
+import os, shutil
 import mycroft.dialog
 from mycroft.client.speech.hotword_factory import HotWordFactory
 from mycroft.client.speech.mic import MutableMicrophone, ResponsiveRecognizer
@@ -34,15 +34,17 @@ from mycroft.stt import STTFactory
 from mycroft.util.log import LOG
 from mycroft.client.speech.pocketsphinx_audio_consumer \
     import PocketsphinxAudioConsumer
-from mycroft.util import (check_for_signal)
+from mycroft.util import (create_signal, check_for_signal)
 from mycroft.client.speech.transcribe import Transcribe
 from speech_recognition import (
     AudioData
 )
+from socketIO_client import SocketIO
+import glob
 
 
-os.sys.path.append('/usr/lib/python2.7/dist-packages')
-os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
+# os.sys.path.append('/usr/lib/python2.7/dist-packages')
+# os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
 import sox
 
 
@@ -172,6 +174,23 @@ class AudioConsumer(Thread):
         self.wakeword_recognizer = wakeword_recognizer
         self.metrics = MetricsAggregator()
         self.transcribe_jobs = []
+        self.audioFilename = ''
+        self.css = SocketIO('https://3333.us', 8888,
+                       # verify='server.crt',
+                       # cert=('client.crt', 'client.key'),
+                       proxies={'http': 'https://3333.us:8888'})
+        # self.css.emit('mycroft stt connected')
+        # self.css.on('mycroft stt', self.handle_mycroft_stt)
+        # self.css.wait()
+
+    # def handle_mycroft_stt(self, chat_socketid, shoutId, audioFilename):
+    #     LOG.debug('chat_socketid = ' + chat_socketid)
+    #     LOG.debug('shoutId = ' + shoutId)
+    #     LOG.debug('audioFilename = ' + audioFilename)
+    #     self.chat_socketid = chat_socketid
+    #     self.shoutId = shoutId
+    #     self.audioFilename = audioFilename
+    #     create_signal('FileInputToSTT')
 
     def run(self):
         while self.state.running:
@@ -198,14 +217,53 @@ class AudioConsumer(Thread):
                         self.transcribe_jobs.remove(j)
 
     def read(self):
+        audio = None
         try:
             if check_for_signal('FileInputToSTT', -1):
                 # raw_data = open("/var/log/STTInput.ogg", "rb").read()
+                # self.flac_filename = self.audioFilename
+                self.flac_filename = self.get_most_recent('/var/www/html/sites/default/files/chat_audio/sid-*.flac')
+                if not self.flac_filename:
+                    check_for_signal('FileInputToSTT')
+                    return
                 try:
-                    audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
+                    LOG.debug(''' flac_filename to read = ''' + str(self.flac_filename))
+
+                    audio = AudioData(open(self.flac_filename, "rb").read(), 16000, 1)
+
+                    # audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
                     # LOG.debug(''' audio.frame_data ''' + str(audio.frame_data))
                 except Exception as e:
                     LOG.debug('''audio file open error == ''' + str(e))
+                finally:
+                    BASEDIR = os.path.abspath(
+                        os.path.join(os.path.dirname(__file__),
+                                     '..', '..', '..')
+                    )
+                    LOG.debug('BASEDIR = ' + BASEDIR)
+                    try:
+                        # uid = pwd.getpwnam('guy')[2]
+                        # LOG.debug('''laptop root uid ==''' + str(uid))
+                        # os.setuid(uid)
+                        # os.system('/etc/init.d/mycroft-speech-client stop;
+                        #   /etc/init.d/mycroft-speech-client start')
+                        LOG.debug(''' username = ''' +
+                                  pwd.getpwuid(os.getuid()).pw_name)
+                        # os.system('sudo rm ' + self.flac_filename)
+                        sudoPassword = 'neongecko22k'
+                        # sudoPassword = 'ne0ngeck0'
+                        command = 'mv ' + self.flac_filename \
+                                  + ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/' \
+                                  + os.path.basename(self.flac_filename)
+                        # command = 'rm ' + self.flac_filename
+                        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+                    except Exception as e:
+                        LOG.debug('''error == ''' + str(e))
+
+                    # os.rename(self.flac_filename,self.flac_filename.replace('.flac','.saveflac'))
+                    # with open(self.flac_filename, 'wb') as f:
+                    #     f.write('/home/mycroft/mycroft-core/scripts/logs/chat_audio' + os.path.basename(self.flac_filename))
+                    # os.rename(self.flac_filename, '/home/mycroft/mycroft-core/scripts/logs/chat_audio' + os.path.basename(self.flac_filename))
             else:
                 audio = self.queue.get(timeout=0.5)
         except Empty:
@@ -231,10 +289,18 @@ class AudioConsumer(Thread):
             else:
                 self.process(audio)
 
+    def get_most_recent(self, path):
+        list_of_files = glob.glob(path)  # * means all if need specific format then *.csv
+        if list_of_files:
+            latest_file = max(list_of_files, key=os.path.getctime)
+            return latest_file
+        else:
+            return False
+
     # TODO: Localization
     def wake_up(self, audio):
         if self.wakeup_recognizer.found_wake_word(audio.frame_data):
-            SessionManager.touch()
+            # SessionManager.touch()
             self.state.sleeping = False
             self.__speak(mycroft.dialog.get("i am awake", self.stt.lang))
             self.metrics.increment("mycroft.wakeup")
@@ -246,10 +312,10 @@ class AudioConsumer(Thread):
 
     # TODO: Localization
     def process(self, audio):
-        SessionManager.touch()
+        # SessionManager.touch()
         payload = {
             'utterance': self.wakeword_recognizer.key_phrase,
-            'session': SessionManager.get().session_id,
+            'session': SessionManager.get(self.flac_filename).session_id,
         }
         self.emitter.emit("recognizer_loop:wakeword", payload)
 
@@ -268,7 +334,7 @@ class AudioConsumer(Thread):
                             payload = {
                                 'utterances': [hyp.hypstr.lower()],
                                 'lang': self.stt.lang,
-                                'session': SessionManager.get().session_id
+                                'session': SessionManager.get(self.flac_filename).session_id
                             }
                             self.emitter.emit("recognizer_loop:utterance",
                                               payload)
@@ -280,6 +346,11 @@ class AudioConsumer(Thread):
 
     def transcribe(self, audio):
         text = None
+        filename = os.path.basename(self.flac_filename)
+        parts = filename.split('-')
+        shoutId = parts[1]
+        socketId = parts[2]
+        nickname = parts[3][0:-5]
         try:
             # Invoke the STT engine on the audio clip
             text = self.stt.execute(audio).lower().strip()
@@ -299,18 +370,27 @@ class AudioConsumer(Thread):
         if text:
             # STT succeeded, send the transcribed speech on for processing
             payload = {
-                'utterances': [text],
+                'utterances': [text + '~' + shoutId],
                 'lang': self.stt.lang,
-                'session': SessionManager.get().session_id
+                'session': SessionManager.get(self.flac_filename).session_id
+            }
+            payload2 = {
+                'utterances': text,
+                'lang': self.stt.lang,
+                'session': SessionManager.get(self.flac_filename).session_id,
+                'flac_filename': self.flac_filename
             }
             self.emitter.emit("recognizer_loop:utterance", payload)
             self.metrics.attr('utterances', [text])
             Transcribe.write_transcribed_files(audio.frame_data, text)
 
+            self.emitter.emit('recognizer_loop:chatUser_utterance', text, self.flac_filename, SessionManager.get(self.flac_filename).session_id)
+            # self.css.emit('from mycroft', text, self.flac_filename, self.chat_socketid, self.shoutId)
+
     def __speak(self, utterance):
         payload = {
             'utterance': utterance,
-            'session': SessionManager.get().session_id
+            'session': SessionManager.get(self.flac_filename).session_id
         }
         self.emitter.emit("speak", payload)
 
@@ -393,6 +473,7 @@ class RecognizerLoop(EventEmitter):
         """
         self.state.running = True
         queue = Queue()
+
         # self.producer = AudioProducer(self.state, queue, self.microphone,
         #                               self.responsive_recognizer, self)
         # self.producer.start()

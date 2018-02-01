@@ -21,6 +21,7 @@ import imp
 import json
 import sys
 import time
+# import os
 
 from os import listdir
 from os.path import abspath, dirname, basename, isdir, join
@@ -30,6 +31,7 @@ from mycroft.configuration import Configuration
 from mycroft.messagebus.client.ws import WebsocketClient
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
+# from mycroft.util.signal import check_for_signal
 
 try:
     import pulsectl
@@ -170,6 +172,8 @@ class AudioService(object):
         # Setup control of pulse audio
         self.setup_pulseaudio_handlers(self.config.get('pulseaudio'))
         ws.once('open', self.load_services_callback)
+
+        # self.audioChatUsers = []
 
     def load_services_callback(self):
         """

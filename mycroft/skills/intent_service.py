@@ -224,6 +224,8 @@ class IntentService(object):
         # no skill wants to handle utterance
         best_intent = None
         for utterance in utterances:
+            # tmp = utterance.split('~')
+            # utterance = tmp[0]
             try:
                 # normalize() changes "it's a boy" to "it is boy", etc.
                 best_intent = next(self.engine.determine_intent(
@@ -243,7 +245,9 @@ class IntentService(object):
             self.update_context(best_intent)
             reply = message.reply(
                 best_intent.get('intent_type'), best_intent)
+
             self.emitter.emit(reply)
+
             # update active skills
             skill_id = int(best_intent['intent_type'].split(":")[0])
             self.add_active_skill(skill_id)

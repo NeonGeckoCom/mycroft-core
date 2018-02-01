@@ -405,6 +405,9 @@ class MycroftSkill(object):
                 else:
                     if len(getargspec(handler).args) == 2:
                         handler(message)
+                        # self.emitter.emit(Message("mycroft.skill.chat_user_update",
+                        #                           data={'intent_type': message.data['intent_type'],
+                        #                                 'utterance': message.data['utterance']}))
                     elif len(getargspec(handler).args) == 1:
                         handler()
                     else:

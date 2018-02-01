@@ -25,10 +25,11 @@ class Session(object):
     An object representing a Mycroft Session Identifier
     """
 
-    def __init__(self, session_id, expiration_seconds=180):
+    def __init__(self, session_id, expiration_seconds=180, flac_filename=''):
         self.session_id = session_id
         self.touch_time = int(time.time())
         self.expiration_seconds = expiration_seconds
+        self.flac_filename = flac_filename
 
     def touch(self):
         """
@@ -58,7 +59,7 @@ class SessionManager(object):
     __lock = Lock()
 
     @staticmethod
-    def get():
+    def get(flac_filename = ''):
         """
         get the active session.
 
@@ -66,14 +67,19 @@ class SessionManager(object):
         """
         config = Configuration.get().get('session')
 
+        uuid = str(uuid4())
+
         with SessionManager.__lock:
             if (not SessionManager.__current_session or
                     SessionManager.__current_session.expired()):
+                    # SessionManager.__current_session.expired() or
+                    # flac_filename != ''):
                 SessionManager.__current_session = Session(
-                    str(uuid4()), expiration_seconds=config.get('ttl', 180))
+                    str(uuid), expiration_seconds=config.get('ttl', 180), flac_filename=flac_filename)
                 LOG.info(
                     "New Session Start: " +
                     SessionManager.__current_session.session_id)
+
             return SessionManager.__current_session
 
     @staticmethod

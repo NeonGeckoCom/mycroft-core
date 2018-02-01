@@ -29,6 +29,7 @@ from mycroft.configuration import Configuration
 from mycroft.messagebus.message import Message
 from mycroft.util import play_wav, play_mp3, check_for_signal, create_signal
 from mycroft.util.log import LOG
+from mycroft.session import SessionManager
 
 
 class PlaybackThread(Thread):
@@ -196,7 +197,7 @@ class TTS(object):
         """
         pass
 
-    def execute(self, sentence):
+    def execute(self, sentence, chatFilename):
         """
             Convert sentence to speech.
 
@@ -207,8 +208,11 @@ class TTS(object):
                 sentence:   Sentence to be spoken
         """
         key = str(hashlib.md5(sentence.encode('utf-8', 'ignore')).hexdigest())
-        wav_file = os.path.join(mycroft.util.get_cache_directory("tts"),
-                                key + '.' + self.type)
+        if not chatFilename:
+            wav_file = os.path.join(mycroft.util.get_cache_directory("tts"),
+                                    key + '.' + self.type)
+        else:
+            wav_file = chatFilename[0:-5] + '.' + self.type
 
         if os.path.exists(wav_file):
             LOG.debug("TTS cache hit")
@@ -218,7 +222,16 @@ class TTS(object):
             if phonemes:
                 self.save_phonemes(key, phonemes)
 
-        self.queue.put((self.type, wav_file, self.visime(phonemes)))
+        LOG.debug('>>> Text input to Mimic = ' + sentence)
+        LOG.debug('>>> Mimic wav file = ' + wav_file)
+
+        # send mycroft's speech (wav file) over to the chat_server
+        self.ws.emit(Message("recognizer_loop:chatUser_response"
+                             , {"sentence": sentence
+                                 , "wav_file": wav_file
+                                 , "sessionId": SessionManager.get().session_id}))
+
+        # self.queue.put((self.type, wav_file, self.visime(phonemes)))
 
     def visime(self, phonemes):
         """
