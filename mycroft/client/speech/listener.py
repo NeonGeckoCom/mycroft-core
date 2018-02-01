@@ -39,7 +39,7 @@ from mycroft.client.speech.transcribe import Transcribe
 from speech_recognition import (
     AudioData
 )
-
+import glob
 
 os.sys.path.append('/usr/lib/python2.7/dist-packages')
 os.sys.path.append('/usr/local/lib/python2.7/dist-packages')
@@ -201,11 +201,49 @@ class AudioConsumer(Thread):
         try:
             if check_for_signal('FileInputToSTT', -1):
                 # raw_data = open("/var/log/STTInput.ogg", "rb").read()
+                # self.flac_filename = self.audioFilename
+                self.flac_filename = self.get_most_recent('/var/www/html/sites/default/files/chat_audio/sid-*.flac')
+                if not self.flac_filename:
+                    check_for_signal('FileInputToSTT')
+                    return
                 try:
-                    audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
+                    LOG.debug(''' flac_filename to read = ''' + str(self.flac_filename))
+
+                    audio = AudioData(open(self.flac_filename, "rb").read(), 16000, 1)
+
+                    # audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
                     # LOG.debug(''' audio.frame_data ''' + str(audio.frame_data))
                 except Exception as e:
                     LOG.debug('''audio file open error == ''' + str(e))
+                finally:
+                    BASEDIR = os.path.abspath(
+                        os.path.join(os.path.dirname(__file__),
+                                     '..', '..', '..')
+                    )
+                    LOG.debug('BASEDIR = ' + BASEDIR)
+                    try:
+                        # uid = pwd.getpwnam('guy')[2]
+                        # LOG.debug('''laptop root uid ==''' + str(uid))
+                        # os.setuid(uid)
+                        # os.system('/etc/init.d/mycroft-speech-client stop;
+                        #   /etc/init.d/mycroft-speech-client start')
+                        LOG.debug(''' username = ''' +
+                                  pwd.getpwuid(os.getuid()).pw_name)
+                        # os.system('sudo rm ' + self.flac_filename)
+                        # sudoPassword = 'neongecko22k'
+                        sudoPassword = 'ne0ngeck0'
+                        command = 'mv ' + self.flac_filename \
+                                  + ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/' \
+                                  + os.path.basename(self.flac_filename)
+                        # command = 'rm ' + self.flac_filename
+                        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+                    except Exception as e:
+                        LOG.debug('''error == ''' + str(e))
+
+                    # os.rename(self.flac_filename,self.flac_filename.replace('.flac','.saveflac'))
+                    # with open(self.flac_filename, 'wb') as f:
+                    #     f.write('/home/mycroft/mycroft-core/scripts/logs/chat_audio' + os.path.basename(self.flac_filename))
+                    # os.rename(self.flac_filename, '/home/mycroft/mycroft-core/scripts/logs/chat_audio' + os.path.basename(self.flac_filename))
             else:
                 audio = self.queue.get(timeout=0.5)
         except Empty:
@@ -230,6 +268,14 @@ class AudioConsumer(Thread):
                           str(self.transcribe_jobs))
             else:
                 self.process(audio)
+
+    def get_most_recent(self, path):
+        list_of_files = glob.glob(path)  # * means all if need specific format then *.csv
+        if list_of_files:
+            latest_file = max(list_of_files, key=os.path.getctime)
+            return latest_file
+        else:
+            return False
 
     # TODO: Localization
     def wake_up(self, audio):
@@ -301,7 +347,8 @@ class AudioConsumer(Thread):
             payload = {
                 'utterances': [text],
                 'lang': self.stt.lang,
-                'session': SessionManager.get().session_id
+                'session': SessionManager.get().session_id,
+                'flac_filename': self.flac_filename
             }
             self.emitter.emit("recognizer_loop:utterance", payload)
             self.metrics.attr('utterances', [text])

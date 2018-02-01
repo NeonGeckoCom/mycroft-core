@@ -64,18 +64,7 @@ def handle_wakeword(event):
 def handle_utterance(event):
     LOG.info("Utterance: " + str(event['utterances']))
     ws.emit(Message('recognizer_loop:utterance', event))
-    css.emit('from mycroft', str(event['utterances'][0]))
-
-# 1st try websocket to chat_server.js
-    # chat_ws = create_connection("ws://localhost:8888")
-    # LOG.info("Sending 'user message to chat'...")
-    # chat_ws.send("user message", str(event['utterances']))
-    # LOG.info("Sent")
-    # LOG.info("Receiving...")
-    # result = chat_ws.recv()
-    # LOG.info("Received '%s'" % result)
-    # chat_ws.close()
-
+    css.emit('stt from mycroft', str(event['utterances'][0]), event['flac_filename'])
 
 
 def handle_speak(event):
