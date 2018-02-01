@@ -255,8 +255,8 @@ def _handle_chatUser_response(message):
         # LOG.debug(''' username = ''' +
         #           pwd.getpwuid(os.getuid()).pw_name)
         # os.system('sudo rm ' + self.flac_filename)
-        sudoPassword = 'neongecko22k'
-        # sudoPassword = 'ne0ngeck0'
+        # sudoPassword = 'neongecko22k'
+        sudoPassword = 'ne0ngeck0'
         command = 'mv ' + message.data['wav_file'] \
                   + ' /var/www/html/sites/default/files/chat_audio/' \
                   + os.path.basename(message.data['wav_file'])

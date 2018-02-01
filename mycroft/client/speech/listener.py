@@ -250,8 +250,8 @@ class AudioConsumer(Thread):
                         LOG.debug(''' username = ''' +
                                   pwd.getpwuid(os.getuid()).pw_name)
                         # os.system('sudo rm ' + self.flac_filename)
-                        sudoPassword = 'neongecko22k'
-                        # sudoPassword = 'ne0ngeck0'
+                        # sudoPassword = 'neongecko22k'
+                        sudoPassword = 'ne0ngeck0'
                         command = 'mv ' + self.flac_filename \
                                   + ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/' \
                                   + os.path.basename(self.flac_filename)
@@ -370,9 +370,10 @@ class AudioConsumer(Thread):
         if text:
             # STT succeeded, send the transcribed speech on for processing
             payload = {
-                'utterances': [text + '~' + shoutId],
+                'utterances': [text],
                 'lang': self.stt.lang,
-                'session': SessionManager.get(self.flac_filename).session_id
+                'session': SessionManager.get().session_id,
+                'flac_filename': self.flac_filename
             }
             payload2 = {
                 'utterances': text,
@@ -384,8 +385,7 @@ class AudioConsumer(Thread):
             self.metrics.attr('utterances', [text])
             Transcribe.write_transcribed_files(audio.frame_data, text)
 
-            self.emitter.emit('recognizer_loop:chatUser_utterance', text, self.flac_filename, SessionManager.get(self.flac_filename).session_id)
-            # self.css.emit('from mycroft', text, self.flac_filename, self.chat_socketid, self.shoutId)
+            self.emitter.emit('recognizer_loop:chatUser_return_stt', text, self.flac_filename)
 
     def __speak(self, utterance):
         payload = {

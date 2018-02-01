@@ -86,10 +86,10 @@ def handle_speak(event):
     """
         Forward speak message to message bus.
     """
-    chatUser = chatUsers.pop()
-    LOG.debug("chatUser[1]['flac_filename'] = " + chatUser[1]['flac_filename'])
-    event.data['chatUserFilename'] = chatUser[1]['flac_filename']
-    LOG.debug("event.data['chatUserFilename'] = " + event.data['chatUserFilename'])
+    # chatUser = chatUsers.pop()
+    # LOG.debug("chatUser[1]['flac_filename'] = " + chatUser[1]['flac_filename'])
+    # event.data['chatUserFilename'] = chatUser[1]['flac_filename']
+    # LOG.debug("event.data['chatUserFilename'] = " + event.data['chatUserFilename'])
     ws.emit(Message('speak', event))
 
 
@@ -162,7 +162,7 @@ def handle_open():
     EnclosureAPI(ws).reset()
 
 
-def handle_chatUser_utterance(text, flac_filename, sessionId):
+def handle_chatUser_return_stt(text, flac_filename):
     # filename = os.path.basename(flac_filename)
     # parts = filename.split('-')
     # shoutId = parts[1]
@@ -187,7 +187,7 @@ def handle_chatUser_utterance(text, flac_filename, sessionId):
     # else:
     #     chatUsers.remove(chatUser)
     #     chatUsers.append(chatUser)
-    ws.emit(Message('chatUserToAudio', {'text': text, 'flac_filename': flac_filename, 'sessionId':sessionId}) )
+    # ws.emit(Message('chatUserToAudio', {'text': text, 'flac_filename': flac_filename, 'sessionId':sessionId}) )
     # LOG.debug('chatUsers = ' + str(chatUsers))
     css.emit('stt from mycroft', text, flac_filename)
 
@@ -195,8 +195,8 @@ def handle_chatUser_utterance(text, flac_filename, sessionId):
 def handle_chatUser_response(message):
     # chatUser = find_chatUser_by_utterance(message.data['utterance'])
     # chatUser = find_chatUser(3.5)
-    chatUser = chatUsers.pop()
-    LOG.debug('handle_chatUser_response, chatUser = ' + str(chatUser))
+    # chatUser = chatUsers.pop()
+    # LOG.debug('handle_chatUser_response, chatUser = ' + str(chatUser))
 
     try:
         # uid = pwd.getpwnam('guy')[2]
@@ -207,8 +207,8 @@ def handle_chatUser_response(message):
         # LOG.debug(''' username = ''' +
         #           pwd.getpwuid(os.getuid()).pw_name)
         # os.system('sudo rm ' + self.flac_filename)
-        sudoPassword = 'neongecko22k'
-        # sudoPassword = 'ne0ngeck0'
+        # sudoPassword = 'neongecko22k'
+        sudoPassword = 'ne0ngeck0'
         command = 'mv ' + message.data['wav_file'] \
                   + ' /var/www/html/sites/default/files/chat_audio/' \
                   + os.path.basename(message.data['wav_file'])
@@ -218,7 +218,7 @@ def handle_chatUser_response(message):
         LOG.debug('''error == ''' + str(e))
 
     if check_for_signal('MatchIntentandRespond', -1):
-        css.emit('mycroft response', message.data['sentence'], os.path.basename(message.data['wav_file']), chatUser)
+        css.emit('mycroft response', message.data['sentence'], os.path.basename(message.data['wav_file']))
 
     # chatUsers.remove(chatUser)
 
@@ -267,8 +267,8 @@ def main():
     loop.on('recognizer_loop:no_internet', handle_no_internet)
     loop.on('recognizer_loop:restart', handle_restart)
     loop.on('recognizer_loop:reload', handle_reload)
-    loop.on('recognizer_loop:chatUser_utterance', handle_chatUser_utterance)
-    loop.on('recognizer_loop:chatUser_response', handle_chatUser_response)
+    loop.on('recognizer_loop:chatUser_return_stt', handle_chatUser_return_stt)
+    # loop.on('recognizer_loop:chatUser_response', handle_chatUser_response)
     # loop.on('recognizer_loop:chatUser_response1', handle_chatUser_response1)
     ws.on('open', handle_open)
     ws.on('complete_intent_failure', handle_complete_intent_failure)
