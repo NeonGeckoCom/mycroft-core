@@ -596,6 +596,7 @@ class MycroftSkill(object):
                                     for response.
         """
         # registers the skill as being active
+        LOG.debug('>>>> message in skills/core.py/speak = ' + str(message.data))
         self.enclosure.register(self.name)
         data = {'utterance': utterance,
                 'expect_response': expect_response,
