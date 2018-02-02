@@ -246,6 +246,7 @@ class IntentService(object):
             reply = message.reply(
                 best_intent.get('intent_type'), best_intent)
 
+            reply.data['flac_filename'] = message.data['flac_filename']
             self.emitter.emit(reply)
 
             # update active skills
