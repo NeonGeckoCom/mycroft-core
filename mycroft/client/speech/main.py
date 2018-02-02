@@ -261,7 +261,7 @@ def main():
     loop = RecognizerLoop()
 
     loop.on('recognizer_loop:utterance', handle_utterance)
-    # loop.on('speak', handle_speak)
+    loop.on('speak', handle_speak)
     loop.on('recognizer_loop:record_begin', handle_record_begin)
     loop.on('recognizer_loop:wakeword', handle_wakeword)
     loop.on('recognizer_loop:record_end', handle_record_end)
