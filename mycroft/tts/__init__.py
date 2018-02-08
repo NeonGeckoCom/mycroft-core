@@ -212,7 +212,18 @@ class TTS(object):
             wav_file = os.path.join(mycroft.util.get_cache_directory("tts"),
                                     key + '.' + self.type)
         else:
-            wav_file = chatFilename[0:-5] + '.' + self.type
+            wav_file = os.path.join(mycroft.util.get_cache_directory("tts"),
+                                    chatFilename[0:-5] + '.' + self.type)
+            # path_to_check = '/var/www/html/sites/default/files/chat_audio/' + os.path.basename(message.data['wav_file'])
+
+            x = 1
+            while os.path.isfile(wav_file):
+                parts = os.path.basename(wav_file).split('-')
+                parts[0] = 'sid' + str(x)
+                newfilename = '-'.join(parts)
+                wav_file = os.path.join(mycroft.util.get_cache_directory("tts"), newfilename)
+                x = x + 1
+
 
         if os.path.exists(wav_file):
             LOG.debug("TTS cache hit")

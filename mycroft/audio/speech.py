@@ -74,7 +74,7 @@ def handle_speak(event):
 
     LOG.debug('>>> flac_filename in audio/speech/handle_speak = ' + event.data['flac_filename'])
     if event.data['flac_filename']:
-        filename = event.data['flac_filename']
+        filename = os.path.basename(event.data['flac_filename'])
     else:
         return
 
@@ -248,6 +248,9 @@ def _handle_chatUser_response(message):
     #     chatUser = audioChatUsers.pop()
     # LOG.debug('audio _handle_chatUser_response, message = ' + str(message))
 
+
+    LOG.debug('audio _handle_chatUser_response, message.data["wav_file"] = ' + str(message.data['wav_file']))
+
     try:
         # uid = pwd.getpwnam('guy')[2]
         # LOG.debug('''laptop root uid ==''' + str(uid))
@@ -258,18 +261,30 @@ def _handle_chatUser_response(message):
         #           pwd.getpwuid(os.getuid()).pw_name)
         # os.system('sudo rm ' + self.flac_filename)
         # sudoPassword = 'neongecko22k'
+        path_to_check = '/var/www/html/sites/default/files/chat_audio/' + os.path.basename(message.data['wav_file'])
+
+        x = 1
+        while os.path.isfile(path_to_check):
+            parts = os.path.basename(path_to_check).split('-')
+            parts[0] = 'sid' + str(x)
+            newfilename = '-'.join(parts)
+            path_to_check = '/var/www/html/sites/default/files/chat_audio/' + newfilename
+            x = x + 1
+
+
         sudoPassword = 'ne0ngeck0'
         command = 'mv ' + message.data['wav_file'] \
-                  + ' /var/www/html/sites/default/files/chat_audio/' \
-                  + os.path.basename(message.data['wav_file'])
+                  + ' ' + path_to_check
+                  # + os.path.basename(message.data['wav_file'])
         # command = 'rm ' + self.flac_filename
+        LOG.debug('>>>>>>_handle_chatUser_response, command = ' + command)
         p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
     except Exception as e:
         LOG.debug('''error == ''' + str(e))
 
 
     if check_for_signal('MatchIntentandRespond', -1):
-        css.emit('mycroft response', message.data['sentence'], os.path.basename(message.data['wav_file']))
+        css.emit('mycroft response', message.data['sentence'], os.path.basename(path_to_check))
 
     # try:
     #     # uid = pwd.getpwnam('guy')[2]

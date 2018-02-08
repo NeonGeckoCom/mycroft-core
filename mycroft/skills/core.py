@@ -595,15 +595,24 @@ class MycroftSkill(object):
                                     response from the user and start listening
                                     for response.
         """
+        if message:
+            if message.data['flac_filename']:
+                filename = message.data['flac_filename']
+            else:
+                filename = ''
+        else:
+            filename = ''
+
         # registers the skill as being active
-        LOG.debug('>>>> message in skills/core.py/speak = ' + str(message.data))
+        # LOG.debug('>>>> utterance in skills/core.py/speak = ' + str(utterance))
+        # LOG.debug('>>>> filename in skills/core.py/speak = ' + str(filename))
         self.enclosure.register(self.name)
         data = {'utterance': utterance,
                 'expect_response': expect_response,
-                'flac_filename': message.data['flac_filename']}
+                'flac_filename': filename}
         self.emitter.emit(Message("speak", data))
 
-    def speak_dialog(self, key, data=None, expect_response=False):
+    def speak_dialog(self, key, data=None, expect_response=False, message=None):
         """
             Speak sentance based of dialog file.
 
@@ -615,7 +624,8 @@ class MycroftSkill(object):
                                     for response.
         """
         data = data or {}
-        self.speak(self.dialog_renderer.render(key, data), expect_response)
+        message = message or {}
+        self.speak(self.dialog_renderer.render(key, data), expect_response, message=message)
 
     def init_dialog(self, root_directory):
         dialog_dir = join(root_directory, 'dialog', self.lang)
