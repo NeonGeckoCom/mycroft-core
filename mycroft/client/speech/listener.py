@@ -409,15 +409,14 @@ def transcribe(self, audio):
             self.emitter.emit("recognizer_loop:utterance", payload)
             self.metrics.attr('utterances', [text])
             Transcribe.write_transcribed_files(audio.frame_data, text)
-
             self.emitter.emit('recognizer_loop:chatUser_return_stt', text, self.flac_filename)
 
-    def __speak(self, utterance):
-        payload = {
-            'utterance': utterance,
-            'session': SessionManager.get(self.flac_filename).session_id
-        }
-        self.emitter.emit("speak", payload)
+def __speak(self, utterance):
+    payload = {
+        'utterance': utterance,
+        'session': SessionManager.get(self.flac_filename).session_id
+    }
+    self.emitter.emit("speak", payload)
 
 
 class RecognizerLoopState(object):
