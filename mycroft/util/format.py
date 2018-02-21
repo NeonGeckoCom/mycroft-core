@@ -1,5 +1,3 @@
-# -*- coding: iso-8859-15 -*-
-#
 # Copyright 2017 Mycroft AI Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,52 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FRACTION_STRING_EN = {
-    2: 'half',
-    3: 'third',
-    4: 'forth',
-    5: 'fifth',
-    6: 'sixth',
-    7: 'seventh',
-    8: 'eigth',
-    9: 'ninth',
-    10: 'tenth',
-    11: 'eleventh',
-    12: 'twelveth',
-    13: 'thirteenth',
-    14: 'fourteenth',
-    15: 'fifteenth',
-    16: 'sixteenth',
-    17: 'seventeenth',
-    18: 'eighteenth',
-    19: 'nineteenth',
-    20: 'twentyith'
-}
 
-FRACTION_STRING_PT = {
-    2: 'meio',
-    3: u'terço',
-    4: 'quarto',
-    5: 'quinto',
-    6: 'sexto',
-    7: u'sétimo',
-    8: 'oitavo',
-    9: 'nono',
-    10: u'décimo',
-    11: 'onze avos',
-    12: 'doze avos',
-    13: 'treze avos',
-    14: 'catorze avos',
-    15: 'quinze avos',
-    16: 'dezasseis avos',
-    17: 'dezassete avos',
-    18: 'dezoito avos',
-    19: 'dezanove avos',
-    20: u'vigésimo',
-    30: u'trigésimo',
-    100: u'centésimo',
-    1000: u'milésimo'
-}
+from mycroft.util.lang.format_en import *
+from mycroft.util.lang.format_pt import *
+from mycroft.util.lang.format_it import *
+from mycroft.util.lang.format_sv import *
+
+from mycroft.util.lang.format_fr import nice_number_fr
+from mycroft.util.lang.format_fr import nice_time_fr
+from mycroft.util.lang.format_fr import pronounce_number_fr
 
 
 def nice_number(number, lang="en-us", speech=True, denominators=None):
@@ -68,97 +29,78 @@ def nice_number(number, lang="en-us", speech=True, denominators=None):
     This function formats a float to human understandable functions. Like
     4.5 becomes 4 and a half for speech and 4 1/2 for text
     Args:
-        number (str): the float to format
-        lang (str): the code for the language text is in
-        speech (bool): to return speech representation or text representation
+        number (int or float): the float to format
+        lang (str): code for the language to use
+        speech (bool): format for speech (True) or display (False)
         denominators (iter of ints): denominators to use, default [1 .. 20]
     Returns:
         (str): The formatted string.
     """
-    result = convert_number(number, denominators)
-    if not result:
-        return str(round(number, 3))
-
-    if not speech:
-        whole, num, den = result
-        if num == 0:
-            return str(whole)
-        else:
-            return '{} {}/{}'.format(whole, num, den)
-
+    # Convert to spoken representation in appropriate language
     lang_lower = str(lang).lower()
     if lang_lower.startswith("en"):
-        return nice_number_en(result)
+        return nice_number_en(number, speech, denominators)
     elif lang_lower.startswith("pt"):
-        return nice_number_pt(result)
-    # TODO: Normalization for other languages
+        return nice_number_pt(number, speech, denominators)
+    elif lang_lower.startswith("it"):
+        return nice_number_it(number, speech, denominators)
+    elif lang_lower.startswith("fr"):
+        return nice_number_fr(number, speech, denominators)
+    elif lang_lower.startswith("sv"):
+        return nice_number_sv(number, speech, denominators)
+
+    # Default to the raw number for unsupported languages,
+    # hopefully the STT engine will pronounce understandably.
     return str(number)
 
 
-def nice_number_en(result):
-    """ English conversion for nice_number """
-    whole, num, den = result
-    if num == 0:
-        return str(whole)
-    den_str = FRACTION_STRING_EN[den]
-    if whole == 0:
-        if num == 1:
-            return_string = 'a {}'.format(den_str)
-        else:
-            return_string = '{} {}'.format(num, den_str)
-    elif num == 1:
-        return_string = '{} and a {}'.format(whole, den_str)
-    else:
-        return_string = '{} and {} {}'.format(whole, num, den_str)
-    if num > 1:
-        return_string += 's'
-    return return_string
+def nice_time(dt, lang="en-us", speech=True, use_24hour=False,
+              use_ampm=False):
+    """
+    Format a time to a comfortable human format
+
+    For example, generate 'five thirty' for speech or '5:30' for
+    text display.
+
+    Args:
+        dt (datetime): date to format (assumes already in local timezone)
+        lang (str): code for the language to use
+        speech (bool): format for speech (default/True) or display (False)=Fal
+        use_24hour (bool): output in 24-hour/military or 12-hour format
+        use_ampm (bool): include the am/pm for 12-hour format
+    Returns:
+        (str): The formatted time string
+    """
+    lang_lower = str(lang).lower()
+    if lang_lower.startswith("en"):
+        return nice_time_en(dt, speech, use_24hour, use_ampm)
+    elif lang_lower.startswith("it"):
+        return nice_time_it(dt, speech, use_24hour, use_ampm)
+    elif lang_lower.startswith("fr"):
+        return nice_time_fr(dt, speech, use_24hour, use_ampm)
+
+    # TODO: Other languages
+    return str(dt)
 
 
-def nice_number_pt(result):
-    """ Portuguese conversion for nice_number """
-    whole, num, den = result
-    if num == 0:
-        return str(whole)
-    # denominador
-    den_str = FRACTION_STRING_PT[den]
-    # fracções
-    if whole == 0:
-        if num == 1:
-            # um décimo
-            return_string = 'um {}'.format(den_str)
-        else:
-            # três meio
-            return_string = '{} {}'.format(num, den_str)
-    # inteiros >10
-    elif num == 1:
-        # trinta e um
-        return_string = '{} e {}'.format(whole, den_str)
-    # inteiros >10 com fracções
-    else:
-        # vinte e 3 décimo
-        return_string = '{} e {} {}'.format(whole, num, den_str)
-    # plural
-    if num > 1:
-        return_string += 's'
-    return return_string
+def pronounce_number(number, lang="en-us", places=2):
+    """
+    Convert a number to it's spoken equivalent
 
+    For example, '5' would be 'five'
 
-def convert_number(number, denominators):
-    """ Convert floats to mixed fractions """
-    int_number = int(number)
-    if int_number == number:
-        return int_number, 0, 1
+    Args:
+        number: the number to pronounce
+    Returns:
+        (str): The pronounced number
+    """
+    lang_lower = str(lang).lower()
+    if lang_lower.startswith("en"):
+        return pronounce_number_en(number, places=places)
+    elif lang_lower.startswith("it"):
+        return pronounce_number_it(number, places=places)
+    elif lang_lower.startswith("fr"):
+        return pronounce_number_fr(number, places=places)
 
-    frac_number = abs(number - int_number)
-    if not denominators:
-        denominators = range(1, 21)
-
-    for denominator in denominators:
-        numerator = abs(frac_number) * denominator
-        if (abs(numerator - round(numerator)) < 0.01):
-            break
-    else:
-        return None
-
-    return int_number, int(round(numerator)), denominator
+    # Default to just returning the numeric value
+    return str(number)

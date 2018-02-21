@@ -103,7 +103,6 @@ LIST_CACHE=''
 
 function get_skill_list() {
   if ! [[ ${LIST_CACHE} ]] ; then
-    echo "1" >> ~/count.txt
     if hash curl ; then
       # retrieve using curl
       LIST_CACHE=$( curl -s "https://raw.githubusercontent.com/MycroftAI/mycroft-skills/master/.gitmodules" )
@@ -143,16 +142,16 @@ function send_start_remove () {
     fi
 }
 function send_install_success () {
-    python -m mycroft.messagebus.send msm.install.succeeded '{"skill": "${1}" }'
+    python -m mycroft.messagebus.send msm.install.succeeded "{\"skill\": \"${1}\" }"
 }
 function send_install_fail () {
-    python -m mycroft.messagebus.send msm.install.failed '{"skill": "${1}", "error" : ${2} }'
+    python -m mycroft.messagebus.send msm.install.failed "{\"skill\": \"${1}\", \"error\" : ${2} }"
 }
 function send_remove_success () {
-    python -m mycroft.messagebus.send msm.remove.succeeded '{"skill": "${1}" }'
+    python -m mycroft.messagebus.send msm.remove.succeeded "{\"skill\": \"${1}\" }"
 }
 function send_remove_fail () {
-    python -m mycroft.messagebus.send msm.remove.failed '{"skill": "${1}", "error" : ${2} }'
+    python -m mycroft.messagebus.send msm.remove.failed "{\"skill\": \"${1}\", \"error\" : ${2} }"
 }
 function send_end_install () {
     if [[ "${install_started}" == "true" ]] ; then
@@ -337,13 +336,6 @@ function install() {
       fi
     fi
 
-    # If the skill has a requirements.txt, pip install them
-    run_pip "${name}"
-    rc=$?
-    if [[ ${rc} -gt 0 ]] ; then
-       return ${rc}
-    fi
-
     # If the skill has a requirements.sh, then run that using bash
     if [[ -f "requirements.sh" ]]; then
       echo "  Setting up native environment..."
@@ -352,6 +344,13 @@ function install() {
         send_install_fail "${name}" 122
         return 122
       fi
+    fi
+
+    # If the skill has a requirements.txt, pip install them
+    run_pip "${name}"
+    rc=$?
+    if [[ ${rc} -gt 0 ]] ; then
+       return ${rc}
     fi
 
     echo "Installed: ${name}"
@@ -419,6 +418,7 @@ function install_from_url_list() {
           exit_code=${rc}
         fi
       fi
+      echo ${name} >> ${mycroft_skill_folder}/.msm.tmp
     fi
   done
 
@@ -472,6 +472,7 @@ function update() {
         git fetch
         git reset --hard origin/master
         rm -f *.pyc
+        run_pip "${d}"
       else
         echo "Ignoring ${d}, skill has been modified."
       fi
@@ -638,15 +639,25 @@ case ${OPT} in
           exit ${exit_code}
       fi
 
-      submodules=$(echo "${LIST_CACHE}" | grep 'submodule "' | sed 's/\[submodule "//g'| sed 's/"\]//g' | sort)
-      while read -r submod
-      do
-          if [[ -d "$mycroft_skill_folder/$submod" ]] ; then
-              printf "$submod ${RED}[${GREEN}installed${RED}]${NOCOLOR}\n\r"
+      # Get name and path
+      submods=($(echo "${LIST_CACHE}" | grep 'submodule "' | sed 's/\[submodule "//g'| sed 's/"\]//g'))
+      paths=($(echo "${LIST_CACHE}" | grep 'path =' | sed 's/\path = //g'| sed 's/"\]//g'))
+      # Determine which have been installed
+      results=()
+      for ((i=0;i<${#submods[@]};++i)); do
+          if [[ -d "$mycroft_skill_folder/${paths[i]}" ]] ; then
+              results+=("${submods[i]} ${RED}[${GREEN}installed${RED}]${NOCOLOR}\n\r")
           else
-              printf "$submod\n\r"
+              results+=("${submods[i]}\n\r")
           fi
-      done <<< "$submodules"
+      done
+      # Sort the result alphabetically
+      readarray -t sorted < <(for a in "${results[@]}"; do echo "$a"; done | sort)
+      # Print the output
+      for ((i=0;i<${#sorted[@]};++i)); do
+        printf "${sorted[i]}"
+      done
+
       exit_code=$?
       ;;
   "update")
@@ -671,6 +682,9 @@ case ${OPT} in
          exit ${exit_code}
       fi
 
+      # Create .msm file to provide timestamp for last msm default
+      rm ${mycroft_skill_folder}/.msm
+      printf "" > ${mycroft_skill_folder}/.msm.tmp
       # These skills are automatically installed on all mycroft-core
       # installations.
       install_from_url_list "https://raw.githubusercontent.com/MycroftAI/mycroft-skills/master/DEFAULT-SKILLS"
@@ -690,6 +704,7 @@ case ${OPT} in
          send_end_update
          exit_code=$?
       fi
+      mv ${mycroft_skill_folder}/.msm.tmp ${mycroft_skill_folder}/.msm
    ;;
   "search")
       if [[ $# -gt 0 ]] ; then

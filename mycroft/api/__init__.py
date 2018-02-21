@@ -23,6 +23,8 @@ from mycroft.configuration.config import DEFAULT_CONFIG, SYSTEM_CONFIG, \
 from mycroft.identity import IdentityManager
 from mycroft.version import VersionManager
 from mycroft.util import get_arch
+# python 2/3 compatibility
+from future.utils import iteritems
 
 _paired_cache = False
 
@@ -32,6 +34,9 @@ class Api(object):
 
     def __init__(self, path):
         self.path = path
+
+        # Load the config, skipping the REMOTE_CONFIG since we are
+        # getting the info needed to get to it!
         config = Configuration.get([DEFAULT_CONFIG,
                                     SYSTEM_CONFIG,
                                     USER_CONFIG],
@@ -110,7 +115,7 @@ class Api(object):
     def build_json(self, params):
         json = params.get("json")
         if json and params["headers"]["Content-Type"] == "application/json":
-            for k, v in json.iteritems():
+            for k, v in iteritems(json):
                 if v == "":
                     json[k] = None
             params["json"] = json
@@ -144,21 +149,47 @@ class DeviceApi(Api):
 
     def activate(self, state, token):
         version = VersionManager.get()
+        platform = "unknown"
+        platform_build = ""
+
+        # load just the local configs to get platform info
+        config = Configuration.get([SYSTEM_CONFIG,
+                                    USER_CONFIG],
+                                   cache=False)
+        if "enclosure" in config:
+            platform = config.get("enclosure").get("platform", "unknown")
+            platform_build = config.get("enclosure").get("platform_build", "")
+
         return self.request({
             "method": "POST",
             "path": "/activate",
             "json": {"state": state,
                      "token": token,
                      "coreVersion": version.get("coreVersion"),
+                     "platform": platform,
+                     "platform_build": platform_build,
                      "enclosureVersion": version.get("enclosureVersion")}
         })
 
     def update_version(self):
         version = VersionManager.get()
+        platform = "unknown"
+        platform_build = ""
+
+        # load just the local configs to get platform info
+        config = Configuration.get([SYSTEM_CONFIG,
+                                    USER_CONFIG],
+                                   cache=False)
+        if "enclosure" in config:
+            platform = config.get("enclosure").get("platform", "unknown")
+            platform_build = config.get("enclosure").get("platform_build", "")
+
         return self.request({
             "method": "PATCH",
             "path": "/" + self.identity.uuid,
             "json": {"coreVersion": version.get("coreVersion"),
+                     "platform": platform,
+                     "platform_build": platform_build,
                      "enclosureVersion": version.get("enclosureVersion")}
         })
 
@@ -226,10 +257,11 @@ class DeviceApi(Api):
 
     def get_subscriber_voice_url(self, voice=None):
         self.check_token()
-        archs = {'x86_64': 'x86_64', 'armv7l': 'arm'}
-        arch = archs[get_arch()]
-        path = '/' + self.identity.uuid + '/voice?arch=' + arch
-        return self.request({'path': path})['link']
+        archs = {'x86_64': 'x86_64', 'armv7l': 'arm', 'aarch64': 'arm'}
+        arch = archs.get(get_arch())
+        if arch:
+            path = '/' + self.identity.uuid + '/voice?arch=' + arch
+            return self.request({'path': path})['link']
 
     def find(self):
         """ Deprecated, see get_location() """
@@ -245,6 +277,21 @@ class DeviceApi(Api):
         """ Deprecated, see get_location() """
         # TODO: Eliminate ASAP, for backwards compatibility only
         return self.get_location()
+
+    def get_oauth_token(self, dev_cred):
+        """
+            Get Oauth token for dev_credential dev_cred.
+
+            Argument:
+                dev_cred:   development credentials identifier
+
+            Returns:
+                json string containing token and additional information
+        """
+        return self.request({
+            "method": "GET",
+            "path": "/" + self.identity.uuid + "/token/" + str(dev_cred)
+        })
 
 
 class STTApi(Api):

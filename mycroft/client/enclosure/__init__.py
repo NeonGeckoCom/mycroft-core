@@ -14,7 +14,7 @@
 #
 import subprocess
 import time
-from Queue import Queue
+import sys
 from alsaaudio import Mixer
 from threading import Thread, Timer
 
@@ -35,6 +35,10 @@ from mycroft.util import play_wav, create_signal, connected, \
     wait_while_speaking
 from mycroft.util.audio_test import record
 from mycroft.util.log import LOG
+if sys.version_info[0] < 3:
+    from Queue import Queue
+else:
+    from queue import Queue
 
 
 class EnclosureReader(Thread):
@@ -52,12 +56,13 @@ class EnclosureReader(Thread):
     Note: A command is identified by a line break
     """
 
-    def __init__(self, serial, ws):
+    def __init__(self, serial, ws, lang=None):
         super(EnclosureReader, self).__init__(target=self.read)
         self.alive = True
         self.daemon = True
         self.serial = serial
         self.ws = ws
+        self.lang = lang or 'en-us'
         self.start()
 
     def read(self):
@@ -116,44 +121,52 @@ class EnclosureReader(Thread):
             subprocess.call('speaker-test -P 10 -l 0 -s 1', shell=True)
 
         if "unit.shutdown" in data:
+            # Eyes to soft gray on shutdown
+            self.ws.emit(Message("enclosure.eyes.color",
+                                 {'r': 70, 'g': 65, 'b': 69}))
             self.ws.emit(
                 Message("enclosure.eyes.timedspin",
                         {'length': 12000}))
             self.ws.emit(Message("enclosure.mouth.reset"))
-            subprocess.call('systemctl poweroff -i', shell=True)
+            time.sleep(0.5)  # give the system time to pass the message
+            self.ws.emit(Message("system.shutdown"))
 
         if "unit.reboot" in data:
+            # Eyes to soft gray on reboot
+            self.ws.emit(Message("enclosure.eyes.color",
+                                 {'r': 70, 'g': 65, 'b': 69}))
             self.ws.emit(Message("enclosure.eyes.spin"))
             self.ws.emit(Message("enclosure.mouth.reset"))
-            subprocess.call('systemctl reboot -i', shell=True)
+            time.sleep(0.5)  # give the system time to pass the message
+            self.ws.emit(Message("system.reboot"))
 
         if "unit.setwifi" in data:
-            self.ws.emit(Message("mycroft.wifi.start"))
+            self.ws.emit(Message("system.wifi.setup", {'lang': self.lang}))
 
         if "unit.factory-reset" in data:
-            self.ws.emit(Message("enclosure.eyes.spin"))
+            self.ws.emit(Message("speak", {
+                'utterance': mycroft.dialog.get("reset to factory defaults")}))
             subprocess.call(
                 'rm ~/.mycroft/identity/identity2.json',
                 shell=True)
-            self.ws.emit(Message("mycroft.wifi.reset"))
-            self.ws.emit(Message("mycroft.disable.ssh"))
-            self.ws.emit(Message("speak", {
-                'utterance': mycroft.dialog.get("reset to factory defaults")}))
+            self.ws.emit(Message("system.wifi.reset"))
+            self.ws.emit(Message("system.ssh.disable"))
             wait_while_speaking()
             self.ws.emit(Message("enclosure.mouth.reset"))
             self.ws.emit(Message("enclosure.eyes.spin"))
             self.ws.emit(Message("enclosure.mouth.reset"))
-            subprocess.call('systemctl reboot -i', shell=True)
+            time.sleep(5)  # give the system time to process all messages
+            self.ws.emit(Message("system.reboot"))
 
         if "unit.enable-ssh" in data:
             # This is handled by the wifi client
-            self.ws.emit(Message("mycroft.enable.ssh"))
+            self.ws.emit(Message("system.ssh.enable"))
             self.ws.emit(Message("speak", {
                 'utterance': mycroft.dialog.get("ssh enabled")}))
 
         if "unit.disable-ssh" in data:
             # This is handled by the wifi client
-            self.ws.emit(Message("mycroft.disable.ssh"))
+            self.ws.emit(Message("system.ssh.disable"))
             self.ws.emit(Message("speak", {
                 'utterance': mycroft.dialog.get("ssh disabled")}))
 
@@ -236,10 +249,13 @@ class Enclosure(object):
         self.ws.on("open", self.on_ws_open)
 
         Configuration.init(self.ws)
-        self.config = Configuration.get().get("enclosure")
+
+        global_config = Configuration.get()
+        self.lang = global_config['lang']
+        self.config = global_config.get("enclosure")
 
         self.__init_serial()
-        self.reader = EnclosureReader(self.serial, self.ws)
+        self.reader = EnclosureReader(self.serial, self.ws, self.lang)
         self.writer = EnclosureWriter(self.serial, self.ws)
 
         # initiates the web sockets on display manager
@@ -305,7 +321,7 @@ class Enclosure(object):
                              "wifi from the menu"}))
         else:
             # enter wifi-setup mode automatically
-            self.ws.emit(Message("mycroft.wifi.start"))
+            self.ws.emit(Message('system.wifi.setup', {'lang': self.lang}))
 
     def __init_serial(self):
         try:
@@ -381,12 +397,10 @@ class Enclosure(object):
         if not connected():  # and self.conn_monitor is None:
             if has_been_paired():
                 # TODO: Enclosure/localization
-                self.ws.emit(Message("speak", {
-                    'utterance': "This unit is not connected to the Internet."
-                                 " Either plug in a network cable or hold the "
-                                 "button on top for two seconds, then select "
-                                 "wifi from the menu"
-                }))
+                self.speak("This unit is not connected to the Internet. "
+                           "Either plug in a network cable or hold the "
+                           "button on top for two seconds, then select "
+                           "wifi from the menu")
             else:
                 # Begin the unit startup process, this is the first time it
                 # is being run with factory defaults.
@@ -400,14 +414,13 @@ class Enclosure(object):
                 # i.e. after pairing is complete
                 self.ws.once('mycroft.paired', self._handle_pairing_complete)
 
+                self.speak(mycroft.dialog.get('mycroft.intro'))
+                wait_while_speaking()
+                time.sleep(2)  # a pause sounds better than just jumping in
+
                 # Kick off wifi-setup automatically
-                self.ws.emit(Message("mycroft.wifi.start",
-                                     {'msg': "Hello I am Mycroft, your new "
-                                      "assistant.  To assist you I need to be "
-                                      "connected to the internet.  You can "
-                                      "either plug me in with a network cable,"
-                                      " or use wifi.  To setup wifi ",
-                                      'allow_timeout': False}))
+                data = {'allow_timeout': False, 'lang': self.lang}
+                self.ws.emit(Message('system.wifi.setup', data))
 
     def _hack_check_for_duplicates(self):
         # TEMPORARY HACK:  Look for multiple instance of the
@@ -440,7 +453,7 @@ class Enclosure(object):
         if needs_reboot:
             LOG.info("Hack reboot...")
             self.reader.process("unit.reboot")
-            ws.emit(Message("enclosure.eyes.spin"))
-            ws.emit(Message("enclosure.mouth.reset"))
+            self.ws.emit(Message("enclosure.eyes.spin"))
+            self.ws.emit(Message("enclosure.mouth.reset"))
         # END HACK
         # TODO: Remove this hack ASAP

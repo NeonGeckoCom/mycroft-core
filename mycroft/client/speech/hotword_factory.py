@@ -15,6 +15,7 @@
 import tempfile
 import time
 
+import sys
 import os
 from os.path import dirname, exists, join, abspath, expanduser, isdir, isfile
 
@@ -117,12 +118,7 @@ class PreciseHotword(HotWordEngine):
         self.models_url = precise_config['models_url']
         self.exe_name = 'precise-stream'
 
-        ww = Configuration.get()['listener']['wake_word']
-        model_name = ww.replace(' ', '-') + '.pb'
-        model_folder = expanduser('~/.mycroft/precise')
-        if not isdir(model_folder):
-            mkdir(model_folder)
-        model_path = join(model_folder, model_name)
+        model_name, model_path = self.get_model_info()
 
         exe_file = self.find_download_exe()
         LOG.info('Found precise executable: ' + exe_file)
@@ -135,6 +131,15 @@ class PreciseHotword(HotWordEngine):
         t = Thread(target=self.check_stdout)
         t.daemon = True
         t.start()
+
+    def get_model_info(self):
+        ww = Configuration.get()['listener']['wake_word']
+        model_name = ww.replace(' ', '-') + '.pb'
+        model_folder = expanduser('~/.mycroft/precise')
+        if not isdir(model_folder):
+            mkdir(model_folder)
+        model_path = join(model_folder, model_name)
+        return model_name, model_path
 
     def find_download_exe(self):
         exe_file = resolve_resource_file(self.exe_name)
@@ -172,7 +177,12 @@ class PreciseHotword(HotWordEngine):
     @staticmethod
     def download(url, filename):
         import shutil
-        from urllib2 import urlopen
+
+        # python 2/3 compatibility
+        if sys.version_info[0] >= 3:
+            from urllib.request import urlopen
+        else:
+            from urllib2 import urlopen
         LOG.info('Downloading: ' + url)
         req = urlopen(url)
         with open(filename, 'wb') as fp:

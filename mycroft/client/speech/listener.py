@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 import time
-from Queue import Queue, Empty
 from threading import Thread
+import sys
 import multiprocessing
 
 import speech_recognition as sr
@@ -28,10 +28,14 @@ import mycroft.dialog
 from mycroft.client.speech.hotword_factory import HotWordFactory
 from mycroft.client.speech.mic import MutableMicrophone, ResponsiveRecognizer
 from mycroft.configuration import Configuration
-from mycroft.metrics import MetricsAggregator
+from mycroft.metrics import MetricsAggregator, Stopwatch, report_timing
 from mycroft.session import SessionManager
 from mycroft.stt import STTFactory
 from mycroft.util.log import LOG
+if sys.version_info[0] < 3:
+    from Queue import Queue, Empty
+else:
+    from queue import Queue, Empty
 from mycroft.client.speech.pocketsphinx_audio_consumer \
     import PocketsphinxAudioConsumer
 from mycroft.util import (create_signal, check_for_signal)
@@ -71,17 +75,17 @@ class AudioProducer(Thread):
                 try:
                     # audio = self.recognizer.listen(source, self.emitter)
 
-                    if not(self.utterance_is_min_len_silence(audio, source)):
+                    if not (self.utterance_is_min_len_silence(audio, source)):
                         self.queue.put(audio)
                     else:
                         LOG.debug('STT bypassed... SILENCE...')
-                except IOError, ex:
+                except IOError as e:
                     # NOTE: Audio stack on raspi is slightly different, throws
                     # IOError every other listen, almost like it can't handle
                     # buffering audio between listen loops.
                     # The internet was not helpful.
                     # http://stackoverflow.com/questions/10733903/pyaudio-input-overflowed
-                    self.emitter.emit("recognizer_loop:ioerror", ex)
+                    self.emitter.emit("recognizer_loop:ioerror", e)
 
 
     def utterance_is_min_len_silence(self, audio, source):
@@ -300,9 +304,9 @@ class AudioConsumer(Thread):
     # TODO: Localization
     def wake_up(self, audio):
         if self.wakeup_recognizer.found_wake_word(audio.frame_data):
-            # SessionManager.touch()
+            SessionManager.touch()
             self.state.sleeping = False
-            self.__speak(mycroft.dialog.get("i am awake", self.stt.lang))
+            self.emitter.emit('recognizer_loop:awoken')
             self.metrics.increment("mycroft.wakeup")
 
     @staticmethod
@@ -312,7 +316,7 @@ class AudioConsumer(Thread):
 
     # TODO: Localization
     def process(self, audio):
-        # SessionManager.touch()
+        SessionManager.touch()
         payload = {
             'utterance': self.wakeword_recognizer.key_phrase,
             'session': SessionManager.get(self.flac_filename).session_id,
@@ -342,9 +346,29 @@ class AudioConsumer(Thread):
                                               [hyp.hypstr.lower()])
 
                 else:
-                    self.transcribe(audio)
+                    stopwatch = Stopwatch()
+                    with stopwatch:
+                        transcription = self.transcribe(audio)
+                    if transcription:
+                        ident = str(stopwatch.timestamp) + str(hash(transcription))
+                        # STT succeeded, send the transcribed speech on for processing
+                        payload = {
+                            'utterances': [transcription],
+                            'lang': self.stt.lang,
+                            'session': SessionManager.get().session_id,
+                            'ident': ident
+                        }
+                        self.emitter.emit("recognizer_loop:utterance", payload)
+                        self.metrics.attr('utterances', [transcription])
+                    else:
+                        ident = str(stopwatch.timestamp)
+                    # Report timing metrics
+                    report_timing(ident, 'stt', stopwatch,
+                                  {'transcription': transcription,
+                                   'stt': self.stt.__class__.__name__})
 
-    def transcribe(self, audio):
+
+def transcribe(self, audio):
         text = None
         filename = os.path.basename(self.flac_filename)
         parts = filename.split('-')
@@ -365,6 +389,7 @@ class AudioConsumer(Thread):
                 text = "pair my device"  # phrase to start the pairing process
                 LOG.warning("Access Denied at mycroft.ai")
         except Exception as e:
+            self.emitter.emit('recognizer_loop:speech.recognition.unknown')
             LOG.error(e)
             LOG.error("Speech Recognition could not understand audio")
         if text:
@@ -551,8 +576,10 @@ class RecognizerLoop(EventEmitter):
                 self.stop()
                 raise  # Re-raise KeyboardInterrupt
 
-
     def reload(self):
+        """
+            Reload configuration and restart consumer and producer
+        """
         self.stop()
         # load config
         self._load_config()
