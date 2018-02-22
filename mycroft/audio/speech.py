@@ -120,8 +120,7 @@ def handle_speak(event):
         #                 check_for_signal('buttonPress')):
         #             break
         # else:
-            mute_and_speak(utterance, ident, filename)
-
+        mute_and_speak(utterance, ident, filename)
         stopwatch.stop()
     report_timing(ident, 'speech', stopwatch, {'utterance': utterance,
                                                'tts': tts.__class__.__name__})
@@ -268,7 +267,9 @@ def _handle_chatUser_response(message):
             x = x + 1
 
 
-        sudoPassword = 'ne0ngeck0'
+        # sudoPassword = 'ne0ngeck0' # .223
+        sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+        
         command = 'mv ' + message.data['wav_file'] \
                   + ' ' + path_to_check
                   # + os.path.basename(message.data['wav_file'])

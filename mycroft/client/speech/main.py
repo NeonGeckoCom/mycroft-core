@@ -104,6 +104,7 @@ def handle_speak(event):
     # LOG.debug("chatUser[1]['flac_filename'] = " + chatUser[1]['flac_filename'])
     # event.data['chatUserFilename'] = chatUser[1]['flac_filename']
     # LOG.debug("event.data['chatUserFilename'] = " + event.data['chatUserFilename'])
+    LOG.debug(">>>>> event.data = " + str(event.data))
     LOG.debug(">>>>> event.data['flac_filename'] = " + event.data['flac_filename'])
     ws.emit(Message('speak', event))
 

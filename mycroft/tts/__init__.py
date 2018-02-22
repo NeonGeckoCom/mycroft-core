@@ -94,17 +94,17 @@ class PlaybackThread(Thread):
 
                 stopwatch = Stopwatch()
                 with stopwatch:
-                    if snd_type == 'wav':
-                        self.p = play_wav(data)
-                    elif snd_type == 'mp3':
-                        self.p = play_mp3(data)
+                    # if snd_type == 'wav':
+                    #     self.p = play_wav(data)
+                    # elif snd_type == 'mp3':
+                    #     self.p = play_mp3(data)
 
                     if visimes:
                         if self.show_visimes(visimes):
                             self.clear_queue()
-                    else:
-                        self.p.communicate()
-                    self.p.wait()
+                    # else:
+                    #     self.p.communicate()
+                    # self.p.wait()
                 send_playback_metric(stopwatch, ident)
 
                 if self.queue.empty():
@@ -236,7 +236,7 @@ class TTS(object):
         """
         pass
 
-    def execute(self, sentence, chatFilename, ident=None):
+    def execute(self, sentence, ident=None, chatFilename=None):
         """
             Convert sentence to speech.
 

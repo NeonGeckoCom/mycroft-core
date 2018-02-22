@@ -284,6 +284,7 @@ class IntentService(object):
                 if not converse:
                     # No conversation, use intent system to handle utterance
                     intent = self._adapt_intent_match(utterances, lang)
+                    intent['flac_filename'] = message.data.get('flac_filename')
 
             if converse:
                 # Report that converse handled the intent and return

@@ -254,10 +254,17 @@ class AudioConsumer(Thread):
                         LOG.debug(''' username = ''' +
                                   pwd.getpwuid(os.getuid()).pw_name)
                         # os.system('sudo rm ' + self.flac_filename)
-                        # sudoPassword = 'neongecko22k'
-                        sudoPassword = 'ne0ngeck0'
+
+                        # sudoPassword = 'neongecko22k' # guys laptop
+
+                        # sudoPassword = 'ne0ngeck0' # 223
+                        # mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+
+                        sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+                        mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
+
                         command = 'mv ' + self.flac_filename \
-                                  + ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/' \
+                                  + mvToDirectory \
                                   + os.path.basename(self.flac_filename)
                         # command = 'rm ' + self.flac_filename
                         p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
@@ -352,14 +359,18 @@ class AudioConsumer(Thread):
                     if transcription:
                         ident = str(stopwatch.timestamp) + str(hash(transcription))
                         # STT succeeded, send the transcribed speech on for processing
+
                         payload = {
                             'utterances': [transcription],
                             'lang': self.stt.lang,
                             'session': SessionManager.get().session_id,
-                            'ident': ident
+                            'ident': ident,
+                            'flac_filename': self.flac_filename
                         }
                         self.emitter.emit("recognizer_loop:utterance", payload)
                         self.metrics.attr('utterances', [transcription])
+                        Transcribe.write_transcribed_files(audio.frame_data, transcription)
+                        self.emitter.emit('recognizer_loop:chatUser_return_stt', transcription, self.flac_filename)
                     else:
                         ident = str(stopwatch.timestamp)
                     # Report timing metrics
@@ -368,55 +379,56 @@ class AudioConsumer(Thread):
                                    'stt': self.stt.__class__.__name__})
 
 
-def transcribe(self, audio):
-        text = None
-        filename = os.path.basename(self.flac_filename)
-        parts = filename.split('-')
-        shoutId = parts[1]
-        socketId = parts[2]
-        nickname = parts[3][0:-5]
-        try:
-            # Invoke the STT engine on the audio clip
-            text = self.stt.execute(audio).lower().strip()
-            LOG.debug("STT: " + text)
-        except sr.RequestError as e:
-            LOG.error("Could not request Speech Recognition {0}".format(e))
-        except ConnectionError as e:
-            LOG.error("Connection Error: {0}".format(e))
-            self.emitter.emit("recognizer_loop:no_internet")
-        except HTTPError as e:
-            if e.response.status_code == 401:
-                text = "pair my device"  # phrase to start the pairing process
-                LOG.warning("Access Denied at mycroft.ai")
-        except Exception as e:
-            self.emitter.emit('recognizer_loop:speech.recognition.unknown')
-            LOG.error(e)
-            LOG.error("Speech Recognition could not understand audio")
-        if text:
-            # STT succeeded, send the transcribed speech on for processing
-            payload = {
-                'utterances': [text],
-                'lang': self.stt.lang,
-                'session': SessionManager.get().session_id,
-                'flac_filename': self.flac_filename
-            }
-            payload2 = {
-                'utterances': text,
-                'lang': self.stt.lang,
-                'session': SessionManager.get(self.flac_filename).session_id,
-                'flac_filename': self.flac_filename
-            }
-            self.emitter.emit("recognizer_loop:utterance", payload)
-            self.metrics.attr('utterances', [text])
-            Transcribe.write_transcribed_files(audio.frame_data, text)
-            self.emitter.emit('recognizer_loop:chatUser_return_stt', text, self.flac_filename)
+    def transcribe(self, audio):
+            text = None
+            # filename = os.path.basename(self.flac_filename)
+            # parts = filename.split('-')
+            # shoutId = parts[1]
+            # socketId = parts[2]
+            # nickname = parts[3][0:-5]
+            try:
+                # Invoke the STT engine on the audio clip
+                text = self.stt.execute(audio).lower().strip()
+                LOG.debug("STT: " + text)
+            except sr.RequestError as e:
+                LOG.error("Could not request Speech Recognition {0}".format(e))
+            except ConnectionError as e:
+                LOG.error("Connection Error: {0}".format(e))
+                self.emitter.emit("recognizer_loop:no_internet")
+            except HTTPError as e:
+                if e.response.status_code == 401:
+                    text = "pair my device"  # phrase to start the pairing process
+                    LOG.warning("Access Denied at mycroft.ai")
+            except Exception as e:
+                self.emitter.emit('recognizer_loop:speech.recognition.unknown')
+                LOG.error(e)
+                LOG.error("Speech Recognition could not understand audio")
+            return text
+            # if text:
+            #     # STT succeeded, send the transcribed speech on for processing
+            #     payload = {
+            #         'utterances': [text],
+            #         'lang': self.stt.lang,
+            #         'session': SessionManager.get().session_id,
+            #         'flac_filename': self.flac_filename
+            #     }
+            #     payload2 = {
+            #         'utterances': text,
+            #         'lang': self.stt.lang,
+            #         'session': SessionManager.get(self.flac_filename).session_id,
+            #         'flac_filename': self.flac_filename
+            #     }
+            #     self.emitter.emit("recognizer_loop:utterance", payload)
+            #     self.metrics.attr('utterances', [text])
+            #     Transcribe.write_transcribed_files(audio.frame_data, text)
+            #     self.emitter.emit('recognizer_loop:chatUser_return_stt', text, self.flac_filename)
 
-def __speak(self, utterance):
-    payload = {
-        'utterance': utterance,
-        'session': SessionManager.get(self.flac_filename).session_id
-    }
-    self.emitter.emit("speak", payload)
+    def __speak(self, utterance):
+        payload = {
+            'utterance': utterance,
+            'session': SessionManager.get(self.flac_filename).session_id
+        }
+        self.emitter.emit("speak", payload)
 
 
 class RecognizerLoopState(object):

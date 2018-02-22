@@ -829,10 +829,11 @@ class MycroftSkill(object):
                                         speaking the utterance.
         """
         if message:
-            if message.data['flac_filename']:
-                filename = message.data['flac_filename']
-            else:
-                filename = ''
+            filename = message.data.get('flac_filename','')
+            # if message.data['flac_filename']:
+            #     filename = message.data['flac_filename']
+            # else:
+            #     filename = ''
         else:
             filename = ''
 
@@ -859,7 +860,7 @@ class MycroftSkill(object):
                                         speaking the utterance.
         """
         data = data or {}
-        self.speak(self.dialog_renderer.render(key, data), expect_response)
+        self.speak(self.dialog_renderer.render(key, data), expect_response, message=message)
 
     def init_dialog(self, root_directory):
         dialog_dir = join(root_directory, 'dialog', self.lang)
