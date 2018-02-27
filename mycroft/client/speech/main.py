@@ -37,7 +37,8 @@ loop = None
 config = Configuration.get()
 
 chatUsers = []
-css = SocketIO('localhost', 8888)
+css = SocketIO('https://localhost', 8888, verify=False)
+# css = SocketIO('localhost', 8888)
 # css = SocketIO('https://0000.us', 8888,
 #                # verify='server.crt',
 #                # cert=('/var/www/html/klatchat/fullchain.pem', '/var/www/html/klatchat/privkey.pem')
