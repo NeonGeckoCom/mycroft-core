@@ -179,11 +179,12 @@ class AudioConsumer(Thread):
         self.metrics = MetricsAggregator()
         self.transcribe_jobs = []
         self.audioFilename = ''
-        css = SocketIO('https://0000.us', 8888,
-                       # verify='server.crt',
-                       # cert=('/var/www/html/klatchat/fullchain.pem', '/var/www/html/klatchat/privkey.pem')
-                       proxies={'https': 'https://0000.us:8888'}
-                       )
+        css = SocketIO('localhost',8888)
+        # css = SocketIO('https://0000.us', 8888,
+        #                # verify='server.crt',
+        #                # cert=('/var/www/html/klatchat/fullchain.pem', '/var/www/html/klatchat/privkey.pem')
+        #                proxies={'https': 'https://0000.us:8888'}
+        #                )
         # self.css.emit('mycroft stt connected')
         # self.css.on('mycroft stt', self.handle_mycroft_stt)
         # self.css.wait()

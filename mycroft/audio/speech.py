@@ -35,10 +35,11 @@ lock = Lock()
 _last_stop_signal = 0
 
 # audioChatUsers = []
-css = SocketIO('https://3333.us', 8888,
-               # verify='server.crt',
-               # cert=('client.crt', 'client.key'),
-               proxies={'http': 'https://3333.us:8888'})
+css = SocketIO('localhost', 8888)
+# css = SocketIO('https://3333.us', 8888,
+#                # verify='server.crt',
+#                # cert=('client.crt', 'client.key'),
+#                proxies={'http': 'https://3333.us:8888'})
 
 
 
