@@ -284,7 +284,9 @@ class IntentService(object):
                 if not converse:
                     # No conversation, use intent system to handle utterance
                     intent = self._adapt_intent_match(utterances, lang)
-                    intent['flac_filename'] = message.data.get('flac_filename')
+                    intent['flac_filename'] = ''
+                    if message.data.get('flac_filename'):
+                        intent['flac_filename'] = message.data.get('flac_filename')
 
             if converse:
                 # Report that converse handled the intent and return
@@ -297,6 +299,7 @@ class IntentService(object):
                 reply = message.reply(intent.get('intent_type'), intent)
             else:
                 # Allow fallback system to handle utterance
+
                 # NOTE: Padatious intents are handled this way, too
                 reply = message.reply('intent_failure',
                                       {'utterance': utterances[0],
