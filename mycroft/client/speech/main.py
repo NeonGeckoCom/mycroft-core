@@ -37,10 +37,10 @@ loop = None
 config = Configuration.get()
 
 chatUsers = []
-css = SocketIO('https://3333.us', 8888,
+css = SocketIO('https://0000.us', 8888,
                # verify='server.crt',
                # cert=('client.crt', 'client.key'),
-               proxies={'http': 'https://3333.us:8888'})
+               proxies={'http': 'https://0000.us:8888'})
 
 
 def handle_record_begin():
