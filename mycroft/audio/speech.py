@@ -35,8 +35,8 @@ lock = Lock()
 _last_stop_signal = 0
 
 # audioChatUsers = []
-css = SocketIO('https://localhost:8888', verify=False)
-# css = SocketIO('https://localhost', 8888, verify=False)
+# css = SocketIO('https://localhost:8888', verify=False)
+css = SocketIO('https://localhost', 8888, verify=False)
 
 # css = SocketIO('localhost', 8888)
 # css = SocketIO('https://3333.us', 8888,

@@ -179,8 +179,8 @@ class AudioConsumer(Thread):
         self.metrics = MetricsAggregator()
         self.transcribe_jobs = []
         self.audioFilename = ''
-        css = SocketIO('https://localhost:8888', verify=False)
-        # css = SocketIO('https://localhost', 8888, verify=False)
+        # css = SocketIO('https://localhost:8888', verify=False)
+        css = SocketIO('https://localhost', 8888, verify=False)
         # css = SocketIO('https://0000.us', 8888,
         #                # verify='server.crt',
         #                # cert=('/var/www/html/klatchat/fullchain.pem', '/var/www/html/klatchat/privkey.pem')
