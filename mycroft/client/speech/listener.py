@@ -226,7 +226,8 @@ class AudioConsumer(Thread):
             if check_for_signal('FileInputToSTT', -1):
                 # raw_data = open("/var/log/STTInput.ogg", "rb").read()
                 # self.flac_filename = self.audioFilename
-                self.flac_filename = self.get_most_recent('/var/www/html/sites/default/files/chat_audio/sid-*.flac')
+                self.flac_filename = self.get_most_recent('/var/www/html/klatchat/app/files/chat_audio/sid-*.flac') # .92
+                # self.flac_filename = self.get_most_recent('/var/www/html/sites/default/files/chat_audio/sid-*.flac') # .223
                 if not self.flac_filename:
                     check_for_signal('FileInputToSTT')
                     return

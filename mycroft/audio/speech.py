@@ -256,20 +256,21 @@ def _handle_chatUser_response(message):
         #           pwd.getpwuid(os.getuid()).pw_name)
         # os.system('sudo rm ' + self.flac_filename)
         # sudoPassword = 'neongecko22k'
-        path_to_check = '/var/www/html/sites/default/files/chat_audio/' + os.path.basename(message.data['wav_file'])
+        path_to_check = '/var/www/html/klatchat/app/files/chat_audio/' + os.path.basename(message.data['wav_file'])
+        # path_to_check = '/var/www/html/sites/default/files/chat_audio/' + os.path.basename(message.data['wav_file'])
 
         x = 1
         while os.path.isfile(path_to_check):
             parts = os.path.basename(path_to_check).split('-')
             parts[0] = 'sid' + str(x)
             newfilename = '-'.join(parts)
-            path_to_check = '/var/www/html/sites/default/files/chat_audio/' + newfilename
+            path_to_check = '/var/www/html/klatchat/app/files/chat_audio/' + newfilename
             x = x + 1
 
 
         # sudoPassword = 'ne0ngeck0' # .223
         sudoPassword = 'ceX+w6S=2[qB?a'  # .92
-        
+
         command = 'mv ' + message.data['wav_file'] \
                   + ' ' + path_to_check
                   # + os.path.basename(message.data['wav_file'])
