@@ -39,8 +39,8 @@ config = Configuration.get()
 chatUsers = []
 css = SocketIO('https://0000.us', 8888,
                # verify='server.crt',
-               cert=('/var/www/html/klatchat/fullchain.pem', '/var/www/html/klatchat/privkey.pem')
-               # proxies={'http': 'https://0000.us:8888'}
+               # cert=('/var/www/html/klatchat/fullchain.pem', '/var/www/html/klatchat/privkey.pem')
+               proxies={'https': 'https://0000.us:8888'}
                )
 
 
