@@ -835,14 +835,17 @@ class MycroftSkill(object):
             # else:
             #     filename = ''
         else:
+            message = dig_for_message()
             filename = ''
+            if message:
+                filename = message.data.get('flac_filename','')
 
         # registers the skill as being active
         self.enclosure.register(self.name)
         data = {'utterance': utterance,
                 'expect_response': expect_response,
                 'flac_filename': filename}
-        message = dig_for_message()
+        # message = dig_for_message()
         if message:
             self.emitter.emit(message.reply("speak", data))
         else:
