@@ -288,7 +288,7 @@ class IntentService(object):
                     LOG('SKILLS').debug(intent)
                     LOG('SKILLS').debug(message)
                     LOG.debug('message.data.get("flac_filename","") ===== ' + message.data.get('flac_filename',''))
-                    if message.data.get('flac_filename',''):
+                    if intent:
                         intent['flac_filename'] = message.data.get('flac_filename','')
 
             if converse:
