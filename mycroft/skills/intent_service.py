@@ -285,8 +285,8 @@ class IntentService(object):
                     # No conversation, use intent system to handle utterance
                     intent = self._adapt_intent_match(utterances, lang)
                     # intent['flac_filename'] = ''
-                    LOG.debug('intent ===== ' + dir(intent))
-                    LOG.debug('message ===== ' + dir(message))
+                    LOG('SKILLS').debug(intent)
+                    LOG('SKILLS').debug(message)
                     LOG.debug('message.data.get("flac_filename","") ===== ' + message.data.get('flac_filename',''))
                     if message.data.get('flac_filename',''):
                         intent['flac_filename'] = message.data.get('flac_filename','')
