@@ -1101,6 +1101,19 @@ class FallbackSkill(MycroftSkill):
 
             stopwatch = Stopwatch()
             handler_name = None
+
+            if message:
+                filename = message.data.get('flac_filename', '')
+                # if message.data['flac_filename']:
+                #     filename = message.data['flac_filename']
+                # else:
+                #     filename = ''
+            else:
+                message = dig_for_message()
+                filename = ''
+                if message:
+                    filename = message.data.get('flac_filename', '')
+
             with stopwatch:
                 for _, handler in sorted(cls.fallback_handlers.items(),
                                          key=operator.itemgetter(0)):
@@ -1111,7 +1124,8 @@ class FallbackSkill(MycroftSkill):
                             ws.emit(Message(
                                 'mycroft.skill.handler.complete',
                                 data={'handler': "fallback",
-                                      "fallback_handler": handler_name}))
+                                      "fallback_handler": handler_name,
+                                      'flac_filename': filename}))
                             break
                     except Exception:
                         LOG.exception('Exception in fallback.')
