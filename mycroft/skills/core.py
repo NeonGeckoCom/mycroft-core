@@ -612,6 +612,10 @@ class MycroftSkill(object):
                             handler(unmunge_message(message, self.skill_id))
                         elif len(getargspec(handler).args) == 1:
                             handler()
+                        elif len(getargspec(handler).args) == 3:
+                            handler(getargspec(handler).args[0]
+                                    ,getargspec(handler).args[1]
+                                    ,getargspec(handler).args[2])
                         else:
                             LOG.error("Unexpected argument count:" +
                                       str(len(getargspec(handler).args)))
