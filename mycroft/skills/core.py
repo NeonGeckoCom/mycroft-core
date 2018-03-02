@@ -1125,7 +1125,8 @@ class FallbackSkill(MycroftSkill):
                                 'mycroft.skill.handler.complete',
                                 data={'handler': "fallback",
                                       "fallback_handler": handler_name,
-                                      'flac_filename': filename}))
+                                      'flac_filename': filename,
+                                      'message':message}))
                             break
                     except Exception:
                         LOG.exception('Exception in fallback.')
