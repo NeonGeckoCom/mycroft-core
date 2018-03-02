@@ -615,6 +615,13 @@ class MycroftSkill(object):
                         else:
                             LOG.error("Unexpected argument count:" +
                                       str(len(getargspec(handler).args)))
+                            LOG.error("Unexpected argument 1:" +
+                                      str(getargspec(handler).args[1]))
+                            LOG.error("Unexpected argument 2:" +
+                                      str(getargspec(handler).args[2]))
+                            LOG.error("Unexpected argument 3:" +
+                                      str(getargspec(handler).args[3]))
+
                             raise TypeError
                     self.settings.store()  # Store settings if they've changed
 
