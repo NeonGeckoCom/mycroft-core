@@ -280,7 +280,76 @@ class AudioConsumer(Thread):
                     #     f.write('/home/mycroft/mycroft-core/scripts/logs/chat_audio' + os.path.basename(self.flac_filename))
                     # os.rename(self.flac_filename, '/home/mycroft/mycroft-core/scripts/logs/chat_audio' + os.path.basename(self.flac_filename))
             else:
-                audio = self.queue.get(timeout=0.5)
+                if check_for_signal('TextFileInput', -1):
+                    self.text_filename = self.get_most_recent(
+                        '/var/www/html/klatchat/app/files/shout_text/sid-*')  # .92
+                    # self.flac_filename = self.get_most_recent('/var/www/html/sites/default/files/chat_audio/sid-*.flac') # .223
+                    utterances = ''
+                    if not self.text_filename:
+                        check_for_signal('TextFileInput')
+                        return
+                    try:
+                        LOG.debug(''' text_filename to read = ''' + str(self.text_filename))
+
+                        with open(self.text_filename, 'r') as fd:
+                            utterances = fd.readlines()
+
+                        stopwatch = Stopwatch()
+
+                        ident = str(stopwatch.timestamp) + str(hash(utterances))
+                        # STT succeeded, send the transcribed speech on for processing
+
+                        payload = {
+                            'utterances': [utterances],
+                            'lang': self.stt.lang,
+                            'session': SessionManager.get().session_id,
+                            'ident': ident,
+                            'flac_filename': self.text_filename
+                        }
+                        self.emitter.emit("recognizer_loop:utterance", payload)
+                        self.metrics.attr('utterances', [utterances])
+                        Transcribe.write_transcribed_files(audio.frame_data, utterances)
+
+                        # audio = AudioData(open(self.flac_filename, "rb").read(), 16000, 1)
+
+                        # audio = AudioData(open("/var/log/STTInput.flac", "rb").read(), 16000, 1)
+                        # LOG.debug(''' audio.frame_data ''' + str(audio.frame_data))
+                    except Exception as e:
+                        LOG.debug('''text file open error == ''' + str(e))
+                    finally:
+                        BASEDIR = os.path.abspath(
+                            os.path.join(os.path.dirname(__file__),
+                                         '..', '..', '..')
+                        )
+                        LOG.debug('BASEDIR = ' + BASEDIR)
+                        try:
+                            # uid = pwd.getpwnam('guy')[2]
+                            # LOG.debug('''laptop root uid ==''' + str(uid))
+                            # os.setuid(uid)
+                            # os.system('/etc/init.d/mycroft-speech-client stop;
+                            #   /etc/init.d/mycroft-speech-client start')
+                            LOG.debug(''' username = ''' +
+                                      pwd.getpwuid(os.getuid()).pw_name)
+                            # os.system('sudo rm ' + self.flac_filename)
+
+                            # sudoPassword = 'neongecko22k' # guys laptop
+
+                            # sudoPassword = 'ne0ngeck0' # 223
+                            # mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+
+                            sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+                            mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/shout_text/'
+
+                            command = 'mv ' + self.text_filename \
+                                      + mvToDirectory \
+                                      + os.path.basename(self.text_filename)
+                            # command = 'rm ' + self.flac_filename
+                            p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+                        except Exception as e:
+                            LOG.debug('''error == ''' + str(e))
+
+                else:
+                    audio = self.queue.get(timeout=0.5)
         except Empty:
             return
 
