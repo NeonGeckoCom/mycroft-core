@@ -292,7 +292,7 @@ class AudioConsumer(Thread):
                         LOG.debug(''' text_filename to read = ''' + str(self.text_filename))
 
                         with open(self.text_filename, 'r') as fd:
-                            utterances = fd.readlines()
+                            utterances = fd.readline()
 
                         stopwatch = Stopwatch()
 
