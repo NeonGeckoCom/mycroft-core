@@ -308,7 +308,7 @@ class AudioConsumer(Thread):
                         }
                         self.emitter.emit("recognizer_loop:utterance", payload)
                         self.metrics.attr('utterances', [utterances])
-                        Transcribe.write_transcribed_files(audio.frame_data, utterances)
+                        # Transcribe.write_transcribed_files(audio.frame_data, utterances)
 
                         # audio = AudioData(open(self.flac_filename, "rb").read(), 16000, 1)
 
