@@ -262,7 +262,7 @@ class TTS(object):
                 wav_file = os.path.join(mycroft.util.get_cache_directory("tts"),
                                         chatFilename[0:-5] + '.' + self.type)
             else:
-                if chatFilename.endswith('.wav'):
+                if chatFilename.endswith('.txt'):
                     wav_file = os.path.join(mycroft.util.get_cache_directory("tts"),
                                             chatFilename[0:-4] + '.' + self.type)
             # path_to_check = '/var/www/html/sites/default/files/chat_audio/' + os.path.basename(message.data['wav_file'])
