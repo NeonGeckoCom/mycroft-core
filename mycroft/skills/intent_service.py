@@ -306,7 +306,8 @@ class IntentService(object):
                 # NOTE: Padatious intents are handled this way, too
                 reply = message.reply('intent_failure',
                                       {'utterance': utterances[0],
-                                       'lang': lang})
+                                       'lang': lang,
+                                       'flac_filename': message.data.get('flac_filename','')})
             self.emitter.emit(reply)
             self.send_metrics(intent, message.context, stopwatch)
         except Exception as e:
