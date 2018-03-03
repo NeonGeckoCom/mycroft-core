@@ -838,6 +838,7 @@ class MycroftSkill(object):
                                         for a response immediately after
                                         speaking the utterance.
         """
+        message = dig_for_message()
         if message:
             filename = message.data.get('flac_filename','')
             # if message.data['flac_filename']:
@@ -855,7 +856,8 @@ class MycroftSkill(object):
         data = {'utterance': utterance,
                 'expect_response': expect_response,
                 'flac_filename': filename}
-        # message = dig_for_message()
+        LOG.debug('Speak this: ' + utterance)
+        LOG.debug('Speak data = ' + str(data))
         if message:
             self.emitter.emit(message.reply("speak", data))
         else:
