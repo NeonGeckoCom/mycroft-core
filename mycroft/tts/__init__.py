@@ -280,9 +280,12 @@ class TTS(object):
             LOG.debug("TTS cache hit")
             phonemes = self.load_phonemes(key)
         else:
-            wav_file, phonemes = self.get_tts(sentence, wav_file)
-            if phonemes:
-                self.save_phonemes(key, phonemes)
+            try:
+                wav_file, phonemes = self.get_tts(sentence, wav_file)
+                if phonemes:
+                    self.save_phonemes(key, phonemes)
+            except:
+                LOG.debug('>>> Mimic failed to write file = ' + wav_file)
 
         self.queue.put((self.type, wav_file, self.visime(phonemes), ident))
         LOG.debug('>>> Text input to Mimic = ' + sentence)
