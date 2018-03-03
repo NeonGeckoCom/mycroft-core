@@ -281,14 +281,15 @@ class TTS(object):
             phonemes = self.load_phonemes(key)
         else:
             try:
-                wav_file, phonemes = self.get_tts(sentence.encode("ascii", errors="ignore").decode(), wav_file)
+                sentence = re.sub(r'[^\x00-\x7f]', r'', sentence)
+                wav_file, phonemes = self.get_tts(sentence, wav_file)
                 if phonemes:
                     self.save_phonemes(key, phonemes)
             except:
                 LOG.debug('>>> Mimic failed to write file = ' + wav_file)
 
         self.queue.put((self.type, wav_file, self.visime(phonemes), ident))
-        LOG.debug('>>> Text input sent to Mimic = ' + sentence.encode("ascii", errors="ignore").decode())
+        LOG.debug('>>> Text input sent to Mimic = ' + sentence)
         LOG.debug('>>> Mimic wav file = ' + wav_file)
 
         # send mycroft's speech (wav file) over to the chat_server
