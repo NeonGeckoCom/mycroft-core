@@ -1119,24 +1119,29 @@ class FallbackSkill(MycroftSkill):
             with stopwatch:
                 for _, handler in sorted(cls.fallback_handlers.items(),
                                          key=operator.itemgetter(0)):
+                    handler_name = get_handler_name(handler)
+                    LOG.debug('fb1: handler_name = ' + handler_name)
+                    if handler_name == 'UnknownSkill.handle_fallback':
+                        message.data['flac_filename'] = ''
+
                     try:
                         if handler(message):
                             #  indicate completion
                             handler_name = get_handler_name(handler)
-                            LOG.debug('fb1: handler_name = ' + handler_name)
+                            # LOG.debug('fb1: handler_name = ' + handler_name)
                             LOG.debug('fb1c: flac_filename = ' + filename)
                             # no talking back to chatserver if UnknownSkill...
-                            if handler_name == 'UnknownSkill.handle_fallback':
-                                ws.emit(Message(
-                                    'mycroft.skill.handler.complete',
-                                    data={'handler': "fallback",
-                                          "fallback_handler": handler_name}))
-                            else:
-                                ws.emit(Message(
-                                    'mycroft.skill.handler.complete',
-                                    data={'handler': "fallback",
-                                          "fallback_handler": handler_name,
-                                          'flac_filename': filename}))
+                            # if handler_name == 'UnknownSkill.handle_fallback':
+                            #     ws.emit(Message(
+                            #         'mycroft.skill.handler.complete',
+                            #         data={'handler': "fallback",
+                            #               "fallback_handler": handler_name}))
+                            # else:
+                            ws.emit(Message(
+                                'mycroft.skill.handler.complete',
+                                data={'handler': "fallback",
+                                      "fallback_handler": handler_name,
+                                      'flac_filename': filename}))
                             break
                     except Exception:
                         LOG.exception('Exception in fallback.')
