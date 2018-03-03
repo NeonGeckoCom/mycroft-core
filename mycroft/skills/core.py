@@ -1121,12 +1121,13 @@ class FallbackSkill(MycroftSkill):
                         if handler(message):
                             #  indicate completion
                             handler_name = get_handler_name(handler)
+                            LOG.debug('fb1: handler_name = ' + handler_name)
+                            LOG.debug('fb1: flac_filename = ' + filename)
                             ws.emit(Message(
                                 'mycroft.skill.handler.complete',
                                 data={'handler': "fallback",
                                       "fallback_handler": handler_name,
-                                      'flac_filename': filename,
-                                      'message':message}))
+                                      'flac_filename': filename}))
                             break
                     except Exception:
                         LOG.exception('Exception in fallback.')
