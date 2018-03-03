@@ -1104,6 +1104,7 @@ class FallbackSkill(MycroftSkill):
 
             if message:
                 filename = message.data.get('flac_filename', '')
+                LOG.debug('fb1a: flac_filename = ' + filename)
                 # if message.data['flac_filename']:
                 #     filename = message.data['flac_filename']
                 # else:
@@ -1113,6 +1114,7 @@ class FallbackSkill(MycroftSkill):
                 filename = ''
                 if message:
                     filename = message.data.get('flac_filename', '')
+                    LOG.debug('fb1b: flac_filename = ' + filename)
 
             with stopwatch:
                 for _, handler in sorted(cls.fallback_handlers.items(),
@@ -1122,7 +1124,7 @@ class FallbackSkill(MycroftSkill):
                             #  indicate completion
                             handler_name = get_handler_name(handler)
                             LOG.debug('fb1: handler_name = ' + handler_name)
-                            LOG.debug('fb1: flac_filename = ' + filename)
+                            LOG.debug('fb1c: flac_filename = ' + filename)
                             ws.emit(Message(
                                 'mycroft.skill.handler.complete',
                                 data={'handler': "fallback",
