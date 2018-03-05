@@ -300,7 +300,7 @@ class AudioConsumer(Thread):
                         # STT succeeded, send the transcribed speech on for processing
 
                         payload = {
-                            'utterances': [utterances],
+                            'utterances': [utterances.lower()],
                             'lang': self.stt.lang,
                             'session': SessionManager.get().session_id,
                             'ident': ident,
