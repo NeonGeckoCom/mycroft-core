@@ -401,8 +401,8 @@ class SkillSettings(dict):
 
         # this is used in core so do not delete!
         if self.is_alive:
-            # continues to poll settings every 60 seconds
-            t = Timer(60, self._poll_skill_settings)
+            # continues to poll settings every 600 seconds
+            t = Timer(600, self._poll_skill_settings)
             t.daemon = True
             t.start()
 
