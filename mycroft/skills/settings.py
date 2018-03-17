@@ -467,14 +467,19 @@ class SkillSettings(dict):
 
         path = \
             "/" + self._device_identity + "/userSkill?identifier=" + identifier
-        user_skill = self.api.request({
-            "method": "GET",
-            "path": path
-        })
-        if len(user_skill) == 0:
+        try:
+            user_skill = self.api.request({
+                "method": "GET",
+                "path": path
+            })
+            if len(user_skill) == 0:
+                return None
+            else:
+                return user_skill[0]
+
+        except Exception as e:
+            LOG.error(e)
             return None
-        else:
-            return user_skill[0]
 
     def _put_metadata(self, settings_meta):
         """ PUT settingsmeta to backend to be configured in server.
