@@ -16,6 +16,7 @@ import time
 from threading import Thread
 import sys
 import multiprocessing
+import socket
 
 import speech_recognition as sr
 from pyee import EventEmitter
@@ -259,13 +260,17 @@ class AudioConsumer(Thread):
                                   pwd.getpwuid(os.getuid()).pw_name)
                         # os.system('sudo rm ' + self.flac_filename)
 
+                        if '.187.223' in socket.gethostbyname(socket.gethostname()):
+                            sudoPassword = 'ne0ngeck0' # 223
+                            mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+                        else:
+                            if '.186.92' in socket.gethostbyname(socket.gethostname()):
+                                sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+                                mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
+
                         # sudoPassword = 'neongecko22k' # guys laptop
 
-                        # sudoPassword = 'ne0ngeck0' # 223
-                        # mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
 
-                        sudoPassword = 'ceX+w6S=2[qB?a'  # .92
-                        mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
 
                         command = 'mv ' + self.flac_filename \
                                   + mvToDirectory \
@@ -336,9 +341,16 @@ class AudioConsumer(Thread):
 
                             # sudoPassword = 'ne0ngeck0' # 223
                             # mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+                            if '.187.223' in socket.gethostbyname(socket.gethostname()):
+                                sudoPassword = 'ne0ngeck0'  # 223
+                                mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+                            else:
+                                if '.186.92' in socket.gethostbyname(socket.gethostname()):
+                                    sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+                                    mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
 
-                            sudoPassword = 'ceX+w6S=2[qB?a'  # .92
-                            mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/shout_text/'
+                            # sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+                            # mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/shout_text/'
 
                             command = 'mv ' + self.text_filename \
                                       + mvToDirectory \

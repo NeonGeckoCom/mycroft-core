@@ -16,6 +16,7 @@ import time
 import re
 import os
 import json
+import socket
 
 from threading import Lock
 from mycroft.configuration import Configuration
@@ -273,7 +274,15 @@ def _handle_chatUser_response(message):
 
 
         # sudoPassword = 'ne0ngeck0' # .223
-        sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+        if '.187.223' in socket.gethostbyname(socket.gethostname()):
+            sudoPassword = 'ne0ngeck0'  # 223
+            # mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+        else:
+            if '.186.92' in socket.gethostbyname(socket.gethostname()):
+                sudoPassword = 'ceX+w6S=2[qB?a'  # .92
+                # mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
+
+        # sudoPassword = 'ceX+w6S=2[qB?a'  # .92
 
         command = 'mv ' + message.data['wav_file'] \
                   + ' ' + path_to_check
