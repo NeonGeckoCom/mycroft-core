@@ -290,6 +290,7 @@ def _handle_chatUser_response(message):
         # command = 'rm ' + self.flac_filename
         LOG.debug('>>>>>>_handle_chatUser_response, command = ' + command)
         p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+        p = os.system('echo %s|sudo -S %s' % (sudoPassword, 'chown root:root *'))
     except Exception as e:
         LOG.debug('''error == ''' + str(e))
 
