@@ -299,6 +299,8 @@ class AudioConsumer(Thread):
                         with open(self.text_filename, 'r') as fd:
                             utterances = fd.readline()
 
+                        Transcribe.write_transcribed_files(None, utterances.lower())
+
                         stopwatch = Stopwatch()
 
                         ident = str(stopwatch.timestamp) + str(hash(utterances))
