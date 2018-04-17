@@ -16,10 +16,10 @@ __author__ = "reginaneon"
 # audio_permission = create_signal('keep_audio_permission')
 
 try:
-    os.makedirs("Documents/mycroft/"
+    os.makedirs("/home/guydaniels1953/Documents/mycroft/"
                 "ts_transcript_audio_segments/")
 except OSError:
-    if not os.path.isdir("Documents/mycroft/"
+    if not os.path.isdir("/home/guydaniels1953/Documents/mycroft/"
                          "ts_transcript_audio_segments/"):
         raise
 
@@ -41,14 +41,14 @@ class Transcribe:
 
         if check_for_signal('transcribe_text_permission', -1):
             # if trans_values.text_permission:
-            filename1 = "Documents/mycroft/ts_transcripts/" + \
+            filename1 = "/home/guydaniels1953/Documents/mycroft/ts_transcripts/" + \
                         globdate + ".txt"
 
             try:
-                os.makedirs("Documents/mycroft/"
+                os.makedirs("/home/guydaniels1953/Documents/mycroft/"
                             "ts_transcripts/")
             except OSError:
-                if not os.path.isdir("Documents/mycroft/"
+                if not os.path.isdir("/home/guydaniels1953/Documents/mycroft/"
                                      "ts_transcripts/"):
                     raise
 
@@ -66,16 +66,16 @@ class Transcribe:
 
             LOG.info("Audio Save Permission Granted")
             try:
-                os.makedirs("Documents/mycroft/"
+                os.makedirs("/home/guydaniels1953/Documents/mycroft/"
                             "ts_transcript_audio_segments/" +
                             globdate)
             except OSError:
-                if not os.path.isdir("Documents/mycroft/"
+                if not os.path.isdir("/home/guydaniels1953/Documents/mycroft/"
                                      "ts_transcript_audio_segments/" +
                                      globdate):
                     raise
 
-            filename = "Documents/mycroft/ts_transcript_audio_segments/" +\
+            filename = "/home/guydaniels1953/Documents/mycroft/ts_transcript_audio_segments/" +\
                        globdate + \
                        "/" + (globstamp + " " + text).decode("utf8") + " .wav"
 
