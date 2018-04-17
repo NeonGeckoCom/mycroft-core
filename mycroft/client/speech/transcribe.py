@@ -61,6 +61,9 @@ class Transcribe:
             LOG.warning("Transcribing Permission Denied")
 
         if check_for_signal('keep_audio_permission', -1):
+            if not audio:
+                return
+
             LOG.info("Audio Save Permission Granted")
             try:
                 os.makedirs("Documents/mycroft/"
