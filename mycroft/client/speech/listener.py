@@ -262,19 +262,19 @@ class AudioConsumer(Thread):
 
                         if '.187.223' in socket.gethostbyname(socket.gethostname()):
                             sudoPassword = 'ne0ngeck0' # 223
-                            mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+                            mvToDirectory = '/home/mycroft/mycroft-core/scripts/logs/chat_audio/'
                         else:
                             if '.186.92' in socket.gethostbyname(socket.gethostname()):
                                 sudoPassword = 'ceX+w6S=2[qB?a'  # .92
-                                mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
+                                mvToDirectory = '/home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
 
                         # sudoPassword = 'neongecko22k' # guys laptop
 
 
 
-                        command = 'mv ' + self.flac_filename \
-                                  + mvToDirectory \
-                                  + os.path.basename(self.flac_filename)
+                        command = 'mv "' + self.flac_filename + '" ' \
+                                  + '"' + mvToDirectory \
+                                  + os.path.basename(self.flac_filename) + '"'
                         # command = 'rm ' + self.flac_filename
                         p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
                     except Exception as e:
@@ -345,18 +345,18 @@ class AudioConsumer(Thread):
                             # mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
                             if '.187.223' in socket.gethostbyname(socket.gethostname()):
                                 sudoPassword = 'ne0ngeck0'  # 223
-                                mvToDirectory = ' /home/mycroft/mycroft-core/scripts/logs/chat_audio/'
+                                mvToDirectory = '/home/mycroft/mycroft-core/scripts/logs/chat_audio/'
                             else:
                                 if '.186.92' in socket.gethostbyname(socket.gethostname()):
                                     sudoPassword = 'ceX+w6S=2[qB?a'  # .92
-                                    mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
+                                    mvToDirectory = '/home/guydaniels1953/mycroft-core/scripts/logs/chat_audio/'
 
                             # sudoPassword = 'ceX+w6S=2[qB?a'  # .92
                             # mvToDirectory = ' /home/guydaniels1953/mycroft-core/scripts/logs/shout_text/'
 
-                            command = 'mv ' + self.text_filename \
-                                      + mvToDirectory \
-                                      + os.path.basename(self.text_filename)
+                            command = 'mv "' + self.text_filename + '" ' \
+                                      + '"' + mvToDirectory \
+                                      + os.path.basename(self.text_filename) + '"'
                             # command = 'rm ' + self.flac_filename
                             p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
                         except Exception as e:

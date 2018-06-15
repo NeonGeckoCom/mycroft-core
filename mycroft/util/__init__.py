@@ -77,6 +77,7 @@ def resolve_resource_file(res_name):
 
 
 def play_wav(uri):
+    return
     config = mycroft.configuration.Configuration.get()
     play_cmd = config.get("play_wav_cmdline")
     play_wav_cmd = str(play_cmd).split(" ")
@@ -87,6 +88,7 @@ def play_wav(uri):
 
 
 def play_mp3(uri):
+    return
     config = mycroft.configuration.Configuration.get()
     play_cmd = config.get("play_mp3_cmdline")
     play_mp3_cmd = str(play_cmd).split(" ")
@@ -97,6 +99,7 @@ def play_mp3(uri):
 
 
 def record(file_path, duration, rate, channels):
+    return
     if duration > 0:
         return subprocess.Popen(
             ["arecord", "-r", str(rate), "-c", str(channels), "-d",
