@@ -456,7 +456,7 @@ class AudioConsumer(Thread):
                         }
                         self.emitter.emit("recognizer_loop:utterance", payload)
                         self.metrics.attr('utterances', [transcription])
-                        Transcribe.write_transcribed_files(audio.frame_data, transcription)
+                        Transcribe().write_transcribed_files(audio.frame_data, transcription)
                         self.emitter.emit('recognizer_loop:chatUser_return_stt', transcription, self.flac_filename)
                     else:
                         ident = str(stopwatch.timestamp)
